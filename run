@@ -1,0 +1,365 @@
+#!/bin/bash 
+
+#
+# All atlases use 
+#    docker.io/pyushkevich/ashs-base
+# except for ASHS-PMC-T1 which uses:
+#    docker.io/pyushkevich/ashs-t1-base
+# and ASHS-PMC-7T-T1 which uses:
+#    docker.io/longxie/ashs-7t-t1
+#
+# dss_ashs_run.sh is called the same for all Atlases
+#    /app/dss_ashs_run.sh -w mywork -r /app/ashs -t $TicketId -a ${AtlasDir}
+# except for ASHS-HarP which is called as:
+#    /app/dss_ashs_run.sh -w mywork -r /app/ashs -t $TicketId -a ${SAtlasDir} -I $AtlasICVDir -g T1 -f T1 -L 101 -R 102 -J 100
+#
+# dss_ashs_run.sh pulls out the T1 and T2 layers, setups up the ASHS_HOOK_SCRIPT, and ASHS_HOOK_DATA 
+#    ASHS_HOOK_DATA=$TicketID
+#    [[ $ICV_ATLAS ]] && ASHS_HOOK_DATA+=",ASHS,0,0,0.5"
+# and calls
+#    $ASHS_ROOT/bin/ashs_main.sh -a $ASHS_ATLAS -g $T1_FILE -f $T2_FILE -w $WORKDIR/ashs -I $IDSTRING -H -P
+#
+# If doing ICV, Re-exports ASHS_HOOK_DATA and runs
+#   $ASHS_ROOT/bin/ashs_main.sh -a $ICV_ATLAS -g $T1_FILE -f $T1_FILE -w $WORKDIR/ashs_icv -I $IDSTRING -H -P -B
+#
+# -P is to use GNU Parallel
+# -B is to skip the initial registration and reuse results of initial joint label fusion
+# -H use external hooks to report progress, errors and warnings
+#
+# dss_ashs_run.sh -L 101 -R 102 -J 100 =>
+#   SHIFT_LEFT=101
+#   SHIFT_RIGHT=102
+#   SHIFT_ICV=100
+# 
+
+#
+# Basic plan:
+# Verify and convert inputs as needed
+# Set correct git branch, master for most, ashs-t1 for ashs-pmc-t1
+# Download the appropriate atlas
+# Run ashs_main.sh
+# Build itksnap file
+# Deal with ASHS-HarP
+#   Download atlas
+#   Run ashs_main.sh
+#   Add outputs to itksnap file
+# Copy everything to the output directory
+
+
+CmdName=$(basename "$0")
+
+function sys {
+    [ -n "${opt_n}${opt_v}" ] && echo "$@" 1>&2
+    [ -n "$opt_n" ] || "$@"
+}
+
+function installAshsAtlas {
+        
+    local Atlas="$1"
+    local AtlasJson=$(jq -r 'select(.Atlas == "'"${Atlas}"'")' "$AshsAtlasConfigFile")
+
+    local AtlasDirectory=$(echo "$AtlasJson" | jq -r '.Directory')
+    local AtlasFile="${AshsAtlasesDir}/${Atlas}.tgz"
+    local Url=$(echo "$AtlasJson" | jq -r '.Url')
+
+    [ -d "$AtlasDirectory" ] || sys mkdir -p "$AtlasDirectory"
+
+    [ -e "$AtlasFile" ] || sys time wget -q -O "$AtlasFile" "$Url" 
+
+    [ -n "${opt_d}${opt_v}" ] && echo -n "Verifying '$Atlas' " 1>&2
+
+    local md5Url=$(echo "$AtlasJson" | jq -r '.md5Url')
+    local AtlasMd5Sum=$(sys wget -q -O - "$md5Url" | awk '{print $1}')
+
+    local DownloadedMd5Sum=$(sys md5sum "$AtlasFile" | awk '{print $1}')
+
+    if [ "$AtlasMd5Sum" == "$DownloadedMd5Sum" ]
+    then
+	[ -n "${opt_d}${opt_v}" ] && echo "Verified" 1>&2
+    else
+	[ -n "${opt_d}${opt_v}" ] && echo "Failed : '$AtlasMd5Sum' != '$DownloadedMd5Sum'" 1>&2
+
+	echo "${CmdName} : Download of Atlas '${Atlas}' failed.  Bailing" 1>&2
+	exit 1
+    fi
+
+    sys tar -xzf "$AtlasFile" -C "$AshsAtlasesDir" 
+    
+    echo "$AtlasJson"
+}
+
+function niftiIfNeeded {
+    local InputFile="$1"
+    local NiftiFile
+    
+    # Convert to nifi if needed
+    if echo "$InputFile" | grep -q ".nii.gz$"
+    then
+	NiftiFile="$InputFile"
+    elif echo "$InputFile" | grep -q ".dicom.zip$"
+    then
+	DicomDir=$(mktemp -d "${TmpDir}/DicomDir-XXXXXXX")
+	[ -d "$DicomDir" ] || mkdir -p "$DicomDir"
+
+	NiftiFile="${TmpDir}/$(basename "$InputFile" | sed 's/.dicom.zip$/.nii.gz/')"
+	unzip -qq -j -d "$DicomDir" "$InputFile" 
+	SeriesID="$(c3d -dicom-series-list "$DicomDir" | tail -n 1 | awk '{print $NF}')"
+
+	# -dicom takes two arguments so  -o follows 
+	c3d -dicom-series-read "$DicomDir" "$SeriesID" -o "$NiftiFile" 
+	rm -rf "$DicomDir"
+    else
+	echo "$cmd : Unrecognized input type '$InputFile'" 1>&2
+	exit 1
+    fi
+
+    realpath "$NiftiFile"
+}
+
+apt install -y wget jq git time 
+export ASHS_ROOT=/app/ashs
+export PATH="${ASHS_ROOT}/bin":$PATH
+
+AshsAtlasesDir="/app/atlas/data"
+AshsAtlasConfigFile="/app/AshsAtlasesConfig.json"
+ConfigJsonFile="config.json"
+OutputDir=${FLYWHEEL_OUTPUT}
+
+SHIFT_LEFT=0
+SHIFT_RIGHT=100
+SHIFT_ICV=200
+
+if [ ! -e "${ASHS_ROOT}/bin/identity.mat" ]
+then
+    
+    cat << EOF > "${ASHS_ROOT}/bin/identity.mat"
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+EOF
+fi
+
+while getopts 1:2:c:dnvw: arg
+do
+
+    case "$arg" in
+	1|2|c|d|n|v|w)
+	    eval "opt_${arg}=${OPTARG:=1}"
+	    ;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+sys sed -i 's,| bc,| /usr/bin/bc,' /app/ashs/bin/ashs_grid.sh
+
+[ -n "$opt_c" ] && ConfigJsonFile="$opt_c"
+
+[ -n "$opt_d" ] && [ -e "$ConfigJsonFile" ] && jq . "$ConfigJsonFile"
+[ -n "$opt_d" ] && find ${FLYWHEEL}
+
+if [ -n "$opt_w" ]
+then
+    WorkDir=$opt_w
+    [ -d "$WorkDir" ] || sys mkdir "$opt_w"
+else
+    WorkDir=$(sys mktemp -d /tmp/ashs-XXXXXX)
+fi
+[ -d "$WorkDir" ] || mkdir "$WorkDir"
+TmpDir="$WorkDir"
+
+if [ -e "$ConfigJsonFile" ]
+then
+	T1Input=$(jq -r '.inputs.T1w.location.path' "$ConfigJsonFile")
+	Atlases=( $(jq -r '.config.ASHS_Atlases' "$ConfigJsonFile") )
+fi
+
+[ -n "$opt_1" ] && T1Input="$opt_1"
+
+if [ -z "T1Input" ]
+then
+    echo "$CmdName : reqiured argument T1 missing. No -1 argument and not found in config.json" 1>&2
+    echo "$syntax" 1>&2
+fi
+
+
+T1NiftiFile=$(niftiIfNeeded "$T1Input")
+IdString=$(basename "$T1NiftiFile" | sed -r 's/.gz$//; s/.zip$//; s/(.nii|.nifti|.dicom|.dcm)$//')
+
+
+if [ -n "$1" ] && [ "$1" == "all" ]
+then
+    Atlases=( $(jq -r '.Atlas' "$AshsAtlasConfigFile" | sort ) )
+elif [ -n "$1" ]
+then
+    Atlases=( "$1" )
+fi
+
+#
+# Make sure there is at least one atlas with json to back it up
+#
+Atlas="${Atlases[0]}"
+AtlasJson=$(jq -r 'select(.Atlas == "'"${Atlas}"'")' "$AshsAtlasConfigFile")
+
+if [ -z "$AtlasJson" ]
+then   
+    echo "${CmdName} : No valid Atlas supplied '$Atlas'" 1>&2
+    echo "${CmdName} : Valid Atlases are: "1>&2
+    jq -r '.Atlas' "$AshsAtlasConfigFile" 1>&2
+    exit 1
+fi
+	
+for Atlas in "${Atlases[@]}"
+do
+        AtlasJson=$(installAshsAtlas "$Atlas")
+        if [ -z "$AtlasJson" ]
+	then
+	    exit 1
+	fi
+	
+
+	T2Input="$T1Input"
+	Inputs=$(echo "$AtlasJson" | jq -r '.Inputs | @csv' | sed 's/"//g')
+	if echo "$Inputs" | grep -q T2
+	then
+	    T2InputNeeded=1
+	    T2Input=$(jq -r '.inputs.T2w.location.path' "$ConfigJsonFile")
+	    [ -n "$opt_2" ] && T2Input="$opt_2"
+	fi
+
+	T2NiftiFile=$(niftiIfNeeded "$T2Input")
+
+	AtlasDirectory=$(echo "$AtlasJson" | jq -r '.Directory')
+	#
+	# Removing the -H option as we don't have hooks
+	#
+	AshsCmd=(
+	    ashs_main.sh -a "$AtlasDirectory"  -g "$T1NiftiFile" -f "$T2NiftiFile"  -w "$WorkDir"  -P
+	)
+
+	GitBranch="master"
+	[ "$i" == "ASHS-PMC-T1" ] && GitBranch="ashs-t1"
+	(cd "/app"; sys git checkout --recurse-submodules "$GitBranch" )
+
+	#
+	# *** Do we need to worry about ASHS_HOOK_SCRIPT/DATA ?
+	#
+        [ -d "$opt_d" ] || sys "${AshsCmd[@]}"
+
+	AshsPrefix=$(basename "$WorkDir")
+	SnaplabelsInputTxtFile="${AtlasDirectory}/snap/snaplabels.txt"
+	SnaplabelsOutputTxtFile="${OutputDir}/${IdString}-snaplabels.txt"
+	ItkSnapFile=${OutputDir}/${IdString}_${Atlas}_results.itksnap
+
+	awk '{ if ( !($1 ~ /^ *[0-9]+$/) || $1 == 0) { print  }  }' "$SnaplabelsInputTxtFile" > "$SnaplabelsOutputTxtFile"
+	awk '{ if ($1 ~ /^ *[0-9]+$/ && $1 > 0) { gsub(/^"/,"\"Left ",$8); printf("%5d %5d %4d %4d       %2d %2d %2d    %s\n",$1 + '"$SHIFT_LEFT"',$2,$3,$4,$5,$6,$7,$8)   }} ' "$SnaplabelsInputTxtFile" >> "$SnaplabelsOutputTxtFile"
+	awk '{ if ($1 ~ /^ *[0-9]+$/ && $1 > 0) { gsub(/^"/,"\"Right ",$8); printf("%5d %5d %4d %4d       %2d %2d %2d    %s\n",$1 + '"$SHIFT_RIGHT"',$2,$3,$4,$5,$6,$7,$8)   }} ' "$SnaplabelsInputTxtFile" >> "$SnaplabelsOutputTxtFile"
+
+	sys ls "$WorkDir"
+
+
+	# TODO: package up the results into a mergeable workspace (?)
+#	for what in heur corr_usegray corr_nogray; do
+#		$ASHS_ROOT/ext/$(uname)/bin/c3d \
+#			$WORKDIR/ashs/final/${IDSTRING}_left_lfseg_${what}.nii.gz \
+#			-shift $SHIFT_LEFT -replace $SHIFT_LEFT 0 \
+#			$WORKDIR/ashs/final/${IDSTRING}_right_lfseg_${what}.nii.gz \
+#			-shift $SHIFT_RIGHT -replace $SHIFT_RIGHT 0 -add \
+#			-type uchar -o $WORKDIR/${IDSTRING}_lfseg_${what}.nii.gz
+#	done
+#
+
+	for what in heur corr_usegray corr_nogray
+	do
+	    sys c3d $WorkDir/final/${AshsPrefix}_left_lfseg_${what}.nii.gz \
+		-shift $SHIFT_LEFT -replace $SHIFT_LEFT 0 $WorkDir/final/${AshsPrefix}_right_lfseg_${what}.nii.gz \
+		-shift $SHIFT_RIGHT -replace $SHIFT_RIGHT 0 -add -type uchar \
+		-o ${OutputDir}/${IdString}_${Atlas}_lfseg_${what}.nii.gz
+	done
+
+	#
+	# Older versions had different tags for T1 under ASHS-HarP than the other atlases
+	#
+	#if [ "$Service" == "ASHS-HarP" ]
+	#then
+	#    	T1Tag=T1
+	#else
+	#        T1Tag=T1-MRI
+	#fi
+	T1Tag=T1-MRI
+	T1OutputNiftiFile="${OutputDir}/"$(basename "$T1NiftiFile")
+	sys cp "$T1NiftiFile" "$OutputDir"
+
+	ITKSnapCmd=( itksnap-wt -layers-add-anat "$T1OutputNiftiFile" -tags-add "$T1Tag" -layers-list -o "$ItkSnapFile" )
+
+	if [ -n "$T2InputNeeded" ]
+	then
+		T2OutputNiftiFile="${OutputDir}/"$(basename "$T2NiftiFile")
+		sys cp "$T2NiftiFile" "$T2OutputNiftiFile"
+
+		ITKSnapCmd=( itksnap-wt -layers-add-anat "$T1OutputNiftiFile" -tags-add "$T1Tag" -layers-add-anat "$T2OutputNiftiFile" -tags-add "T2-MRI" -layers-list -o "$ItkSnapFile" )
+	fi
+
+	sys "${ITKSnapCmd[@]}"
+
+#	itksnap-wt -i $WSFILE \
+#			-las $WORKDIR/${IDSTRING}_lfseg_corr_usegray.nii.gz -psn "JLF/CL result" \
+#			-las $WORKDIR/${IDSTRING}_lfseg_corr_nogray.nii.gz -psn "JLF/CL-lite result" \
+#			-las $WORKDIR/${IDSTRING}_lfseg_heur.nii.gz -psn "JLF result" \
+#			-labels-clear \
+#			-labels-add $ASHS_ATLAS/snap/snaplabels.txt $SHIFT_LEFT "Left %s" \
+#			-labels-add $ASHS_ATLAS/snap/snaplabels.txt $SHIFT_RIGHT "Right %s" \
+#			-o $WORKDIR/${IDSTRING}_results.itksnap
+
+	sys itksnap-wt -i $ItkSnapFile \
+		   -las $OutputDir/${IdString}_${Atlas}_lfseg_corr_usegray.nii.gz -psn "JLF/CL result" \
+		   -las $OutputDir/${IdString}_${Atlas}_lfseg_corr_nogray.nii.gz -psn "JLF/CL-lite result" \
+		   -las $OutputDir/${IdString}_${Atlas}_lfseg_heur.nii.gz -psn "JLF result" \
+		   -labels-clear \
+		   -labels-add "$SnaplabelsInputTxtFile" $SHIFT_LEFT "Left %s" \
+		   -labels-add "$SnaplabelsInputTxtFile" $SHIFT_RIGHT "Right %s" \
+		   -o $ItkSnapFile
+
+
+	
+	if [ "$Atlas" == "ASHS-HarP" ]
+	then
+
+	    SubAtlas=$(echo "$AtlasJson" | jq -r '.SubAtlas')
+	    SubAtlasJson=$(installAshsAtlas "$SubAtlas")
+
+	    SubAtlasDirectory=$(echo "$SubAtlasJson" | jq -r '.Directory')
+	    SubAtlasSnaplabelsInputTxtFile="${SubAtlasDirectory}/snap/snaplabels.txt"
+
+	    echo "SubAtlasDirectory '$SubAtlasDirectory'"
+
+	    AshsCmd=(
+		ashs_main.sh -a "$SubAtlasDirectory"  -g "$T1NiftiFile" -f "$T2NiftiFile"  -w "$WorkDir/ashs_icv" -P -B
+	    )
+
+	    [ -n "$opt_d" ] || sys "${AshsCmd[@]}"
+
+	    sys ls -l $WorkDir
+	    sys ls -l $WorkDir/ashs_icv
+	    sys ls -l $WorkDir/ashs_icv/final
+
+	    c3d $WorkDir/ashs_icv/final/ashs_icv_left_lfseg_corr_nogray.nii.gz \
+		-shift $SHIFT_ICV -replace $SHIFT_ICV 0 -type uchar -o \
+		$OutputDir/${IdString}_${Atlas}_icv.nii.gz
+
+	    
+	    itksnap-wt -i ${ItkSnapFile} \
+		       -las $OutputDir/${IdString}_${Atlas}_icv.nii.gz -psn "ICV" \
+		       -labels-add ${SubAtlasSnaplabelsInputTxtFile} $SHIFT_ICV "%s" \
+		       -o ${ItkSnapFile}
+
+	    awk '{ if ($1 ~ /^ *[0-9]+$/ && $1 > 0) { printf("%5d %5d %4d %4d       %2d %2d %2d    %s\n",$1 + '"$SHIFT_ICV"',$2,$3,$4,$5,$6,$7,$8)   }} ' "$SubAtlasSnaplabelsInputTxtFile" >> "$SnaplabelsOutputTxtFile"
+
+
+        fi
+	
+	sys rm -f "$T1OutputNiftiFile" "$T2OutputNiftiFile"
+	sys ls -l "$OutputDir"
+done
+

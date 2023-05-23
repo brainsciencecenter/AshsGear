@@ -1,0 +1,16 @@
+#!/bin/bash
+
+AshsAtlasConfigFile="AshsAtlasesConfig.json"
+
+if [ -n "$1" ]
+then
+    Atlases=( "$@" )
+else
+    Atlases=( $(jq -r '.Atlas' "$AshsAtlasConfigFile"))
+fi
+
+for Atlas in "${Atlases[@]}"
+do
+    [ -d output/$Atlas ] || mkdir -p output/$Atlas
+    bash -x run -v -w output/$Atlas -1 input/T1/t1.nii.gz -2 input/T2/t2.nii.gz $Atlas
+done

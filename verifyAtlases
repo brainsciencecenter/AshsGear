@@ -1,0 +1,28 @@
+#!/bin/bash
+
+AshsAtlasConfigFile="AshsAtlasesConfig.json"
+
+if [ -n "$1" ]
+then
+    Atlases=( "$@" )
+else
+    Atlases=( $(jq -r '.Atlas' "$AshsAtlasConfigFile" | sort ) )
+fi
+
+for Atlas in "${Atlases[@]}"
+do
+	echo -n "Verifying '$Atlas' "
+	AtlasJson=$(jq -r 'select(.Atlas == "'"$Atlas"'")' $AshsAtlasConfigFile)
+	md5Url=$(echo "$AtlasJson" | jq -r '.md5Url')
+	AtlasMd5Sum=$(wget -q -O - "$md5Url" | awk '{print $1}')
+
+	Url=$(echo "$AtlasJson" | jq -r '.Url')
+	DownloadedMd5Sum=$(wget -q -O - "$Url" | md5sum | awk '{print $1}')
+
+	if [ "$AtlasMd5Sum" == "$DownloadedMd5Sum" ]
+	then
+		echo "Verified $(date) : '$AtlasMd5Sum' == '$DownloadedMd5Sum'"
+	else
+		echo "Failed : '$AtlasMd5Sum' != '$DownloadedMd5Sum'"
+	fi
+done
