@@ -2,7 +2,7 @@
     "Atlas": "ASHS-PMC-T1",
     "Directory": "/app/atlas/data/ashsT1_atlas_upennpmc_07202018",
     "Inputs": { 
-	    "T1" : "124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz"
+	    "T1" : "testdata/124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz"
     },
     "md5Url": "https://upenn.box.com/shared/static/602oyyvkiyukeqwej6444vklwvyydhkz.md5sum",
     "Url": "https://upenn.box.com/shared/static/9q9q9e5d58mg9f0aurcjkdx1bt3anvp7.tgz"
@@ -11,8 +11,8 @@
     "Atlas": "ASHS-PMC",
     "Directory": "/app/atlas/data/ashs_atlas_upennpmc_20170810",
     "Inputs": { 
-	    "T1" : "124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz",
-	    "T2" : "124822x20210126x3TxABC/T2_2D_0.4x0.4x1.2mm_180flip_ND.nii.gz"
+	    "T1" : "testdata/124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz",
+	    "T2" : "testdata/124822x20210126x3TxABC/T2_2D_0.4x0.4x1.2mm_180flip_ND.nii.gz"
     },
     "md5Url": "https://upenn.box.com/shared/static/tu2sjoy0omq5vgrcg2od7fccqfcixt61.md5sum",
     "Url": "https://upenn.box.com/shared/static/zdikuhgwc67tp3d85bml36n6asbm92yy.tgz"
@@ -21,8 +21,8 @@
     "Atlas": "ASHS-ABC-3T",
     "Directory": "/app/atlas/data/ashs_atlas_abc_prisma_20200406",
     "Inputs": { 
-	    "T1" : "124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz",
-	    "T2" : "124822x20210126x3TxABC/T2_2D_0.4x0.4x1.2mm_180flip_ND.nii.gz"
+	    "T1" : "testdata/124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz",
+	    "T2" : "testdata/124822x20210126x3TxABC/T2_2D_0.4x0.4x1.2mm_180flip_ND.nii.gz"
     },
     "md5Url": "https://upenn.box.com/shared/static/fvl2977kvx1a5hk62xlp75l66aef5f34.md5sum",
     "Url": "https://upenn.box.com/shared/static/907f7xl7z4mukwvvdzpdlduq3lxkd2xc.tgz"
@@ -31,7 +31,7 @@
     "Atlas": "ASHS-ABC-7T",
     "Directory": "/app/atlas/data/ashs_atlas_abc_7t_20230511",
     "Inputs": { 
-	    "T1" : "124822x20210126x7TxABC/T2_Coronal_p2_0.4x0.4x1.0mm_ND.nii.gz"
+	    "T1" : "testdata/124822x20210126x7TxABC/T2_Coronal_p2_0.4x0.4x1.0mm_ND.nii.gz"
     },
     "md5Url": "https://upenn.box.com/shared/static/gh7kajy3yw3udk48oa996adykrgtqnn4.md5sum",
     "Url": "https://upenn.box.com/shared/static/v2sxlxannw31h54vwybo0mpt85vkoyaj.tgz"
@@ -40,8 +40,8 @@
     "Atlas": "ASHS-Magdeburg",
     "Directory": "/app/atlas/data/ashs_atlas_dzne7t",
     "Inputs": {
-	    "T1": "125590x20221020x7TxYMTL/memp2rage_700um_TI700_2700_TR5000_p3_PF0.75_BW800Hz_INV2_ND_RMS.nii.gz",
-	    "T2": "125590x20221020x7TxYMTL/T2_Coronal_p2_0.4x0.4x1.0mm_ND.nii.gz"
+	    "T1" : "testdata/125590x20221020x7TxYMTL/memp2rage_700um_TI700_2700_TR5000_p3_PF0.75_BW800Hz_INV2_ND_RMS.nii.gz",
+	    "T2" : "testdata/125590x20221020x7TxYMTL/T2_Coronal_p2_0.4x0.4x1.0mm_ND.nii.gz"
     },
     "md5Url": "https://upenn.box.com/shared/static/ant1wdbdnpkky7hfirya83v4w9xe1kag.md5sum",
     "Url": "https://upenn.box.com/shared/static/hb7u370gy1djpz2lqlp17533buu209qk.tgz"
@@ -50,7 +50,7 @@
     "Atlas": "ASHS-HarP",
     "Directory": "/app/atlas/data/ashs_atlas_harp30/final",
     "Inputs": { 
-	    "T1" : "124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz"
+	    "T1" : "testdata/124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz"
     },
     "md5Url": "https://upenn.box.com/shared/static/i5k4gkm93v6lx7ylsq0n03m4nc4wbwig.md5sum",
     "Url": "https://upenn.box.com/shared/static/uijwemiz4rvp5kbtqoat8c8g4c8kgw1h.tgz",
@@ -61,7 +61,7 @@
     "Atlas": "ASHS-ICV",
     "Directory": "/app/atlas/data/ashs_atlas_icv/final",
     "Inputs": { 
-	    "T1" : "124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz"
+	    "T1" : "testdata/124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz"
     },
     "md5Url": "https://upenn.box.com/shared/static/z0nh75zpit2ll2c2by1zwvyiqrubjbvk.md5sum",
     "Url": "https://upenn.box.com/shared/static/1yy653yuy2zcd2rots1eaftg7theyyoq.tgz"
@@ -70,8 +70,8 @@
     "Atlas": "ASHS-Princeton",
     "Directory": "/app/atlas/data/ashs_atlas_princeton",
     "Inputs": { 
-	    "T1" : "126954x20230413x3TxYMTL/T1_3D_0.8x0.8x0.8_ND.nii.gz",
-	    "T2" : "126954x20230413x3TxYMTL/T2_2D_0.4x0.4x1.2mm_180flip_ND.nii.gz"
+	    "T1" : "testdata/126954x20230413x3TxYMTL/T1_3D_0.8x0.8x0.8_ND.nii.gz",
+	    "T2" : "testdata/126954x20230413x3TxYMTL/T2_2D_0.4x0.4x1.2mm_180flip_ND.nii.gz"
     },
     "md5Url": "https://upenn.box.com/shared/static/j1irtnl990r8pxh1pn5jvfc3b5f7m4kt.md5sum",
     "Url": "https://upenn.box.com/shared/static/g2zu3x7yg0x7phryynqcucfmxj3oibdr.tgz"
@@ -80,8 +80,8 @@
     "Atlas": "ASHS-Utrecht",
     "Directory": "/app/atlas/data/ashs_atlas_umcutrecht_7t_20170810",
     "Inputs": { 
-	    "T1" : "124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz",
-	    "T2" : "124822x20210126x3TxABC/T2_2D_0.4x0.4x1.2mm_180flip_ND.nii.gz"
+	    "T1" : "testdata/124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz",
+	    "T2" : "testdatatestdata//124822x20210126x3TxABC/T2_2D_0.4x0.4x1.2mm_180flip_ND.nii.gz"
     },
     "md5Url": "https://upenn.box.com/shared/static/l38ziflahabhmkepmfvfuwj23lje8t4x.md5sum",
     "Url": "https://upenn.box.com/shared/static/36ojbo2u51bc215twzch6ym2bszaehw8.tgz"

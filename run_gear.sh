@@ -1,6 +1,6 @@
 #!/bin/bash
 
-IMAGE=ashs:0.1.10
+IMAGE=ashs:0.1.11
 BASEDIR=/data/holder/Ashs
 CURDIR=${BASEDIR}/docker-ashs-base
 

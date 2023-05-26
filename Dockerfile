@@ -32,4 +32,5 @@ COPY docker-ashs-base /app/
 
 COPY config.json config.test.json manifest.json run runall ${FLYWHEEL}/
 COPY AshsAtlasesConfig.json /app/AshsAtlasesConfig.json
+COPY testdata ${FLYWHEEL}/testdata
 
