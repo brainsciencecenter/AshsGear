@@ -213,6 +213,7 @@ do
 	    exit 1
 	fi
 	
+	[ -e "$ConfigJsonFile" ] && T1Input=$(jq -r '.inputs.T1w.location.path' "$ConfigJsonFile" | grep -v null)
 	[ -n "$opt_1" ] && T1Input="$opt_1"
 
 	[ -n "$opt_t" ] && [ -z "$T1Input" ] && T1Input=$(echo "$AtlasJson" | jq -r .Inputs.T1) 
@@ -231,7 +232,7 @@ do
 	if echo "$Inputs" | grep -q T2
 	then
 	    T2InputNeeded=1
-	    T2Input=$(jq -r '.inputs.T2w.location.path' "$ConfigJsonFile" | grep -v null)
+	    [ -e "$ConfigJsonFile" ] && T2Input=$(jq -r '.inputs.T2w.location.path' "$ConfigJsonFile" | grep -v null)
 	    [ -n "$opt_2" ] && T2Input="$opt_2"
 	    [ -n "$opt_t" ] && [ -z "$T2Input" ] && T2Input=$(echo "$AtlasJson" | jq -r .Inputs.T2)
 
