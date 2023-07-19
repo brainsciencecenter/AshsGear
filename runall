@@ -1,16 +1,30 @@
 #!/bin/bash
 
-AshsAtlasConfigFile="AshsAtlasesConfig.json"
+AshsAtlasConfigJsonFile="/app/AshsAtlasesConfig.json"
+
+if [ ! -e "$AshsAtlasConfigJsonFile" ]
+then
+        echo "Missing AshsAtlasconfigJsonFile '$AshsAtlasConfigJsonFile'"
+fi
 
 if [ -n "$1" ]
 then
     Atlases=( "$@" )
 else
-    Atlases=( $(jq -r '.Atlas' "$AshsAtlasConfigFile"))
+    Atlases=( $(jq -r '.Atlas' "$AshsAtlasConfigJsonFile"))
 fi
 
 for Atlas in "${Atlases[@]}"
 do
-    [ -d output/$Atlas ] || mkdir -p output/$Atlas
-    bash -x run -v -w output/$Atlas -1 input/T1/t1.nii.gz -2 input/T2/t2.nii.gz $Atlas
+
+        T1Input=$(jq -r 'select(.Atlas == "'"$Atlas"'") | .Inputs.T1' "$AshsAtlasConfigJsonFile" | grep -v null)
+        T2Input="$T1Input"
+
+        Inputs=$(jq -r 'select(.Atlas == "'"${Atlas}"'") | .Inputs | keys | @csv' "$AshsAtlasConfigJsonFile" | sed 's/"//g')
+        if echo "$Inputs" | grep -q T2
+        then
+                T2Input=$(jq -r 'select(.Atlas == "'"$Atlas"'") | .Inputs.T2' "$AshsAtlasConfigJsonFile" | grep -v null)
+        fi
+
+        bash -x run -v -w output/$Atlas -1 "$T1Input" -2 "$T2Input" $Atlas
 done
