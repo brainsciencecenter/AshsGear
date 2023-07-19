@@ -309,6 +309,7 @@ do
 		sys cp "$T2NiftiFile" "$T2OutputNiftiFile"
 
 		ITKSnapCmd=( itksnap-wt -layers-add-anat "$T1OutputNiftiFile" -tags-add "$T1Tag" -layers-add-anat "$T2OutputNiftiFile" -tags-add "T2-MRI" -layers-list -o "$ItkSnapFile" )
+		ITKSnapCmd=( itksnap-wt -layers-add-anat "$T2OutputNiftiFile" -tags-add "T2-MRI" -layers-add-anat "$T1OutputNiftiFile" -tags-add "$T1Tag" -layers-list -o "$ItkSnapFile" )
 	fi
 
 	sys "${ITKSnapCmd[@]}"
@@ -368,6 +369,11 @@ do
 
 
         fi
+
+	for i in $(find "${WorkDir}" -type f | grep png | grep -E 'bootstrap_(corr|heur)_(left|right|usegray)')
+	do
+		sys cp "$i" "$OutputDir"
+	done
 	
 	sys rm -f "$T1OutputNiftiFile" "$T2OutputNiftiFile"
 	sys ls -l "$OutputDir"
