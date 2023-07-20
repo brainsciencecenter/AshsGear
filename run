@@ -127,6 +127,8 @@ InputDir=${FLYWHEEL_INPUT}
 OutputDir=${FLYWHEEL_OUTPUT}
 TestDataDir=${FLYWHEEL}/testdata
 
+RunDate=$(date +%Y-%m-%d_%H-%M)
+
 SHIFT_LEFT=0
 SHIFT_RIGHT=100
 SHIFT_ICV=200
@@ -372,7 +374,8 @@ do
 
 	for i in $(find "${WorkDir}" -type f | grep png | grep -E 'bootstrap_(corr|heur)_(left|right|usegray)')
 	do
-		sys cp "$i" "$OutputDir"
+		BaseName=$(basename -s .png "$i")
+		sys cp "$i" "${OutputDir}/${IdString}_${Atlas}_${BaseName}_${RunDate}.png"
 	done
 	
 	sys rm -f "$T1OutputNiftiFile" "$T2OutputNiftiFile"
