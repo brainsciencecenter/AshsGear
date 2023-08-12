@@ -116,6 +116,10 @@ function niftiIfNeeded {
     realpath "$NiftiFile"
 }
 
+function uploadQaFile {
+	true
+}
+
 apt install -y wget jq git time 
 export ASHS_ROOT=/app/ashs
 export PATH="${ASHS_ROOT}/bin":$PATH
@@ -144,11 +148,13 @@ then
 EOF
 fi
 
-while getopts 1:2:c:dntvw: arg
+opt_q=Acquisition
+
+while getopts 1:2:c:dnqtvw: arg
 do
 
     case "$arg" in
-	1|2|c|d|n|t|v|w)
+	1|2|c|d|n|q|t|v|w)
 	    eval "opt_${arg}=${OPTARG:=1}"
 	    ;;
     esac
@@ -156,12 +162,17 @@ done
 
 shift $(($OPTIND - 1))
 
+git clone 'https://github.com/brainsciencecenter/flywheel.git'
+export PATH=${FLYWHEEL}/flywheel/bin:$PATH
+
 sys sed -i 's,| bc,| /usr/bin/bc,' /app/ashs/bin/ashs_grid.sh
 
 [ -n "$opt_c" ] && ConfigJsonFile="$opt_c"
 
 [ -n "$opt_d" ] && [ -e "$ConfigJsonFile" ] && jq . "$ConfigJsonFile"
 [ -n "$opt_d" ] && find ${FLYWHEEL}
+
+jq . "$ConfigJsonFile"
 
 if [ -n "$opt_w" ]
 then
@@ -325,7 +336,7 @@ do
 #			-labels-add $ASHS_ATLAS/snap/snaplabels.txt $SHIFT_RIGHT "Right %s" \
 #			-o $WORKDIR/${IDSTRING}_results.itksnap
 
-	sys itksnap-wt -i $ItkSnapFile \
+sys itksnap-wt -i $ItkSnapFile \
 		   -las $OutputDir/${IdString}_${Atlas}_lfseg_corr_usegray.nii.gz -psn "JLF/CL result" \
 		   -las $OutputDir/${IdString}_${Atlas}_lfseg_corr_nogray.nii.gz -psn "JLF/CL-lite result" \
 		   -las $OutputDir/${IdString}_${Atlas}_lfseg_heur.nii.gz -psn "JLF result" \
@@ -372,10 +383,24 @@ do
 
         fi
 
-	for i in $(find "${WorkDir}" -type f | grep png | grep -E 'bootstrap_(corr|heur)_(left|right|usegray)')
-	do
-		BaseName=$(basename -s .png "$i")
-		sys cp "$i" "${OutputDir}/${IdString}_${Atlas}_${BaseName}_${RunDate}.png"
+    	for i in $(find "${WorkDir}" -type f | grep png | grep -E 'bootstrap_(corr|heur)_(left|right|usegray)')
+    	do
+    	    BaseName=$(basename -s .png "$i")
+
+	    case "$opt_q" in
+	        *Analysis*|analysis)
+    		    sys cp "$i" "${OutputDir}/${IdString}_${Atlas}_${BaseName}_${RunDate}.png"
+		    ;;
+
+	        *Acquisition*|*acquisition*)
+		    sys uploadQaFile "$i"
+		    ;;
+		
+	        "None")
+		    true
+		    ;;
+
+            esac
 	done
 	
 	sys rm -f "$T1OutputNiftiFile" "$T2OutputNiftiFile"

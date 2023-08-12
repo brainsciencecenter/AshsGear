@@ -1,396 +1,159 @@
 {
-    "config": {
-        "ASHS_Atlases": "ASHS-ABC-7T",
-        "ProjectName": ""
-    },
-    "destination": {
-        "id": "60e1f6a16e3a16d5b496c8ec",
-        "type": "analysis"
-    },
-    "inputs": {
-        "T1w": {
-            "base": "file",
-            "hierarchy": {
-                "id": "5e232e073a9694007a7ad050",
-                "type": "acquisition"
-            },
-            "location": {
-                "name": "T2_Coronal_p2_0.4x0.4x1.0mm.nii.gz",
-                "path": "/flywheel/v0/input/T1w/T2_Coronal_p2_0.4x0.4x1.0mm.nii.gz"
-            },
-            "object": {
-                "classification": {
-                    "Features": [
-                        "MPRAGE"
-                    ],
-                    "Intent": [
-                        "Structural"
-                    ],
-                    "Measurement": [
-                        "T1"
-                    ]
-                },
-                "info": {
-                    "AcquisitionDate": "20200118",
-                    "AcquisitionMatrix": [
-                        0,
-                        256,
-                        192,
-                        0
-                    ],
-                    "AcquisitionNumber": 1,
-                    "AcquisitionTime": "110406.545000",
-                    "AngioFlag": "N",
-                    "BitsAllocated": 16,
-                    "BitsStored": 12,
-                    "BodyPartExamined": "BRAIN",
-                    "CSAHeader": {
-                        "AcquisitionMatrixText": "192*256s",
-                        "Actual3DImaPartNumber": 25,
-                        "ContentQualification": "PRODUCT",
-                        "EchoColumnPosition": 128,
-                        "EchoLinePosition": 96,
-                        "EchoPartitionPosition": 80,
-                        "GSWDDataType": "predicted",
-                        "ICE_Dims": "X_1_1_1_1_1_26_1_1_1_1_1_171",
-                        "ImaAbsTablePosition": [
-                            0,
-                            0,
-                            -2330
-                        ],
-                        "ImaCoilString": "A32",
-                        "ImaPATModeText": "p2",
-                        "ImaRelTablePosition": [
-                            0,
-                            0,
-                            0
-                        ],
-                        "ImageHistory": [
-                            "CC:SoS"
-                        ],
-                        "MeasuredFourierLines": 0,
-                        "MultistepIndex": 0,
-                        "NonPlanarImage": 0,
-                        "PhaseEncodingDirectionPositive": 1,
-                        "ProtocolSliceNumber": 0,
-                        "RFSWDDataType": "predicted",
-                        "RealDwellTime": 9800,
-                        "SequenceMask": 134217728,
-                        "SliceMeasurementDuration": 242917.5,
-                        "SlicePosition_PCS": [
-                            -90.0,
-                            -142.93504524,
-                            -67.65043163
-                        ],
-                        "UsedChannelString": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-                    },
-                    "Columns": 192,
-                    "ContentDate": "20200118",
-                    "ContentTime": "110810.065000",
-                    "DeidentificationMethod": "Penn_BSC_profile_v3.0",
-                    "DeviceSerialNumber": "79106",
-                    "EchoNumbers": 1,
-                    "EchoTime": 3.71,
-                    "EchoTrainLength": 1,
-                    "FlipAngle": 7,
-                    "FrameOfReferenceUID": "1.3.12.2.1107.5.2.0.79106.1.20200118105140551.0.0.0",
-                    "HighBit": 11,
-                    "ImageComments": "SH@cmroi:CSI_gluCEST",
-                    "ImageOrientationPatient": [
-                        1.0,
-                        4.897e-12,
-                        0.0,
-                        -4.897e-12,
-                        1.0,
-                        0.0
-                    ],
-                    "ImagePositionPatient": [
-                        -89.999999999412,
-                        -142.93504524275,
-                        -67.650431632996
-                    ],
-                    "ImageType": [
-                        "ORIGINAL",
-                        "PRIMARY",
-                        "M",
-                        "ND"
-                    ],
-                    "ImagedNucleus": "1H",
-                    "ImagingFrequency": 297.201351,
-                    "InPlanePhaseEncodingDirection": "ROW",
-                    "InstanceCreationDate": "20200118",
-                    "InstanceCreationTime": "110810.065000",
-                    "InstanceNumber": 26,
-                    "InstitutionAddress": "Curie Blvd 422,Philadelphia,PA,US,19104",
-                    "InstitutionName": "SC7T",
-                    "InversionTime": 1100,
-                    "LargestImagePixelValue": 565,
-                    "MRAcquisitionType": "3D",
-                    "MagneticFieldStrength": 7,
-                    "Manufacturer": "SIEMENS",
-                    "ManufacturerModelName": "Investigational_Device_7T",
-                    "Modality": "MR",
-                    "NumberOfAverages": 1,
-                    "NumberOfPhaseEncodingSteps": 191,
-                    "OperatorsName": "ACember",
-                    "PatientPosition": "HFS",
-                    "PatientSex": "F",
-                    "PercentPhaseFieldOfView": 75,
-                    "PercentSampling": 100,
-                    "PerformedProcedureStepDescription": "Research^ACember",
-                    "PerformedProcedureStepID": "MR20200118104556",
-                    "PerformedProcedureStepStartDate": "20200118",
-                    "PerformedProcedureStepStartTime": "104556.656000",
-                    "PhotometricInterpretation": "MONOCHROME2",
-                    "PixelBandwidth": 200,
-                    "PixelRepresentation": 0,
-                    "PixelSpacing": [
-                        0.9375,
-                        0.9375
-                    ],
-                    "ProtocolName": "mprage_p2_1mm",
-                    "RepetitionTime": 2280,
-                    "Rows": 256,
-                    "SAR": 0.37808440236463,
-                    "SOPClassUID": "MR Image Storage",
-                    "SOPInstanceUID": "1.3.12.2.1107.5.2.0.79106.2020011811080963167351096",
-                    "SamplesPerPixel": 1,
-                    "ScanOptions": "IR",
-                    "ScanningSequence": [
-                        "GR",
-                        "IR"
-                    ],
-                    "SequenceName": "*tfl3d1_16",
-                    "SequenceVariant": [
-                        "SK",
-                        "SP",
-                        "MP"
-                    ],
-                    "SeriesDate": "20200118",
-                    "SeriesDescription": "mprage_p2_1mm",
-                    "SeriesInstanceUID": "1.3.12.2.1107.5.2.0.79106.2020011811040543239450835.0.0.0",
-                    "SeriesNumber": 3,
-                    "SeriesTime": "110809.868000",
-                    "SliceLocation": -67.650431632996,
-                    "SliceThickness": 1,
-                    "SmallestImagePixelValue": 0,
-                    "SoftwareVersions": "syngo MR E12",
-                    "SpecificCharacterSet": "ISO_IR 100",
-                    "StationName": "AWP79106",
-                    "StudyComments": "SH@cmroi:CSI_gluCEST",
-                    "StudyDate": "20200118",
-                    "StudyDescription": "Research^ACember",
-                    "StudyID": "1",
-                    "StudyInstanceUID": "1.3.12.2.1107.5.2.0.79106.30000020011718064343500000020",
-                    "StudyTime": "104556.557000",
-                    "TransmitCoilName": "1Tx32Rx_Head",
-                    "VariableFlipAngleFlag": "N",
-                    "WindowCenter": 117,
-                    "WindowCenterWidthExplanation": "Algo1",
-                    "WindowWidth": 300,
-                    "dBdt": 0
-                },
-                "measurements": [
-                    "Structural",
-                    "MPRAGE",
-                    "T1"
-                ],
-                "mimetype": "application/zip",
-                "modality": "MR",
-                "size": 10153589,
-                "tags": [],
-                "type": "dicom"
-            }
-        },
-        "T2w": {
-            "base": "file",
-            "hierarchy": {
-                "id": "5e2338d43a9694007a7ae116",
-                "type": "acquisition"
-            },
-            "location": {
-                "name": "T2_Coronal_p2_0.4x0.4x1.0mm.nii.gz",
-                "path": "/flywheel/v0/input/T2w/T2_Coronal_p2_0.4x0.4x1.0mm.nii.gz"
-            },
-            "object": {
-                "classification": {
-                    "Intent": [
-                        "Structural"
-                    ],
-                    "Measurement": [
-                        "T2"
-                    ]
-                },
-                "info": {
-                    "AcquisitionDate": "20200118",
-                    "AcquisitionMatrix": [
-                        0,
-                        448,
-                        434,
-                        0
-                    ],
-                    "AcquisitionNumber": 1,
-                    "AcquisitionTime": "114548.437500",
-                    "AngioFlag": "N",
-                    "BitsAllocated": 16,
-                    "BitsStored": 12,
-                    "BodyPartExamined": "BRAIN",
-                    "CSAHeader": {
-                        "AcquisitionMatrixText": "434p*448",
-                        "Actual3DImaPartNumber": 125,
-                        "ContentQualification": "PRODUCT",
-                        "EchoColumnPosition": 224,
-                        "EchoLinePosition": 217,
-                        "EchoPartitionPosition": 112,
-                        "GSWDDataType": "measured",
-                        "ICE_Dims": "X_1_1_1_1_1_126_1_1_1_1_1_206",
-                        "ImaAbsTablePosition": [
-                            0,
-                            0,
-                            -2330
-                        ],
-                        "ImaCoilString": "A32",
-                        "ImaPATModeText": "p2",
-                        "ImaRelTablePosition": [
-                            0,
-                            0,
-                            0
-                        ],
-                        "ImageHistory": [
-                            "IntrinsicPhaseCorr2D",
-                            "CC:SoS"
-                        ],
-                        "MeasuredFourierLines": 0,
-                        "MultistepIndex": 0,
-                        "NonPlanarImage": 0,
-                        "PhaseEncodingDirectionPositive": 1,
-                        "ProtocolSliceNumber": 0,
-                        "RFSWDDataType": "measured",
-                        "RealDwellTime": 3400,
-                        "SequenceMask": 134217728,
-                        "SliceMeasurementDuration": 444950.0,
-                        "SlicePosition_PCS": [
-                            -96.87499908,
-                            -54.79717777,
-                            72.71315994
-                        ],
-                        "UsedChannelString": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-                    },
-                    "Columns": 434,
-                    "ContentDate": "20200118",
-                    "ContentTime": "115320.148000",
-                    "DeidentificationMethod": "Penn_BSC_profile_v3.0",
-                    "DeviceSerialNumber": "79106",
-                    "EchoNumbers": 1,
-                    "EchoTime": 387,
-                    "EchoTrainLength": 203,
-                    "FlipAngle": 120,
-                    "FrameOfReferenceUID": "1.3.12.2.1107.5.2.0.79106.1.20200118105140551.0.0.0",
-                    "HighBit": 11,
-                    "ImageComments": "SH@cmroi:CSI_gluCEST",
-                    "ImageOrientationPatient": [
-                        1.0,
-                        -4.8e-13,
-                        0.0,
-                        2.39e-13,
-                        0.4984877410315,
-                        -0.8668967482009
-                    ],
-                    "ImagePositionPatient": [
-                        -96.874999076146,
-                        -54.797177765644,
-                        72.713159940761
-                    ],
-                    "ImageType": [
-                        "ORIGINAL",
-                        "PRIMARY",
-                        "M",
-                        "ND"
-                    ],
-                    "ImagedNucleus": "1H",
-                    "ImagingFrequency": 297.201376,
-                    "InPlanePhaseEncodingDirection": "ROW",
-                    "InstanceCreationDate": "20200118",
-                    "InstanceCreationTime": "115320.148000",
-                    "InstanceNumber": 126,
-                    "InstitutionAddress": "Curie Blvd 422,Philadelphia,PA,US,19104",
-                    "InstitutionName": "SC7T",
-                    "LargestImagePixelValue": 410,
-                    "MRAcquisitionType": "3D",
-                    "MagneticFieldStrength": 7,
-                    "Manufacturer": "SIEMENS",
-                    "ManufacturerModelName": "Investigational_Device_7T",
-                    "Modality": "MR",
-                    "NumberOfAverages": 1,
-                    "NumberOfPhaseEncodingSteps": 294,
-                    "OperatorsName": "ACember",
-                    "PatientPosition": "HFS",
-                    "PatientSex": "F",
-                    "PercentPhaseFieldOfView": 96.875,
-                    "PercentSampling": 100,
-                    "PerformedProcedureStepDescription": "Research^ACember",
-                    "PerformedProcedureStepID": "MR20200118104556",
-                    "PerformedProcedureStepStartDate": "20200118",
-                    "PerformedProcedureStepStartTime": "104556.656000",
-                    "PhotometricInterpretation": "MONOCHROME2",
-                    "PixelBandwidth": 330,
-                    "PixelRepresentation": 0,
-                    "PixelSpacing": [
-                        0.4464285671711,
-                        0.4464285671711
-                    ],
-                    "ProtocolName": "t2_spcR_cor_0.4x0.4x1.0",
-                    "RepetitionTime": 3000,
-                    "Rows": 448,
-                    "SAR": 0.19099497217805,
-                    "SOPClassUID": "MR Image Storage",
-                    "SOPInstanceUID": "1.3.12.2.1107.5.2.0.79106.2020011811531860619253168",
-                    "SamplesPerPixel": 1,
-                    "ScanOptions": "PFP",
-                    "ScanningSequence": "SE",
-                    "SequenceName": "*spcR_274ns",
-                    "SequenceVariant": [
-                        "SK",
-                        "SP"
-                    ],
-                    "SeriesDate": "20200118",
-                    "SeriesDescription": "t2_spcR_cor_0.4x0.4x1.0",
-                    "SeriesInstanceUID": "1.3.12.2.1107.5.2.0.79106.2020011811454014811552647.0.0.0",
-                    "SeriesNumber": 16,
-                    "SeriesTime": "115317.078000",
-                    "SliceLocation": -11.256876373532,
-                    "SliceThickness": 1,
-                    "SmallestImagePixelValue": 0,
-                    "SoftwareVersions": "syngo MR E12",
-                    "SpecificCharacterSet": "ISO_IR 100",
-                    "StationName": "AWP79106",
-                    "StudyComments": "SH@cmroi:CSI_gluCEST",
-                    "StudyDate": "20200118",
-                    "StudyDescription": "Research^ACember",
-                    "StudyID": "1",
-                    "StudyInstanceUID": "1.3.12.2.1107.5.2.0.79106.30000020011718064343500000020",
-                    "StudyTime": "104556.557000",
-                    "TransmitCoilName": "1Tx32Rx_Head",
-                    "VariableFlipAngleFlag": "Y",
-                    "WindowCenter": 139,
-                    "WindowCenterWidthExplanation": "Algo1",
-                    "WindowWidth": 341,
-                    "dBdt": 0
-                },
-                "measurements": [
-                    "Structural",
-                    "T2"
-                ],
-                "mimetype": "application/zip",
-                "modality": "MR",
-                "size": 32329213,
-                "tags": [],
-                "type": "dicom"
-            }
-        },
-        "api-key": {
-            "base": "api-key",
-            "key": "upenn.flywheel.io:duSbLcnn4WwF2zi9sf"
-        }
+  "config": {
+    "ASHS_Atlases": "ASHS-ABC-3T",
+    "ProjectName": ""
+  },
+  "job": {
+    "id": "64d6cf9b05c07f284b3675d5",
+    "gear_info": {
+      "id": "64d6cf18ea97754993e468ad",
+      "category": "analysis",
+      "name": "ashs",
+      "version": "0.1.18",
+      "capabilities": null
     }
-}
+  },
+  "inputs": {
+    "T1w": {
+      "hierarchy": {
+        "id": "601058e8d5ee8747beeacb6f",
+        "type": "acquisition"
+      },
+      "object": {
+        "type": "nifti",
+        "mimetype": "application/octet-stream",
+        "modality": "MR",
+        "classification": {
+          "Intent": [
+            "Structural"
+          ],
+          "Features": [
+            "3D"
+          ],
+          "Measurement": [
+            "T1"
+          ]
+        },
+        "tags": [],
+        "info": {
+          "InPlanePhaseEncodingDirectionDICOM": "ROW",
+          "InversionTime": 1.06,
+          "PixelBandwidth": 210,
+          "ConsistencyInfo": "N4_VE11C_LATEST_20160120",
+          "ImageComments": "124822@dwolklab:NACC-SC",
+          "ProcedureStepDescription": "124822_20210126_3T",
+          "DeviceSerialNumber": "66044",
+          "AcquisitionMatrixPE": 300,
+          "ImageOrientationPatientDICOM": [
+            -0.00938609,
+            0.931279,
+            -0.364187,
+            -0.0122206,
+            -0.364282,
+            -0.931208
+          ],
+          "PatientSex": "M",
+          "ManufacturersModelName": "Prisma",
+          "ProtocolName": "T1_3D_0.8x0.8x0.8",
+          "RepetitionTime": 2.4,
+          "RefLinesPE": 32,
+          "MagneticFieldStrength": 3,
+          "PhaseEncodingSteps": 299,
+          "MRAcquisitionType": "3D",
+          "SliceThickness": 0.8,
+          "AcquisitionNumber": 1,
+          "InstitutionName": "SC3T",
+          "TxRefAmp": 266.99,
+          "BodyPartExamined": "BRAIN",
+          "AcquisitionDateTime": "2021-01-26T12:37:29.315000",
+          "SAR": 0.0418504,
+          "PulseSequenceDetails": "%SiemensSeq%_tfl",
+          "ScanningSequence": "GR_IR",
+          "Manufacturer": "Siemens",
+          "ConversionSoftware": "dcm2niix",
+          "PercentPhaseFOV": 93.75,
+          "ReconMatrixPE": 300,
+          "FlipAngle": 8,
+          "ConversionSoftwareVersion": "v1.0.20190410  (JP2:OpenJPEG) GCC4.8.4",
+          "SeriesDescription": "T1_3D_0.8x0.8x0.8_ND",
+          "PartialFourier": 1,
+          "InstitutionAddress": "Curie_Blvd._422_Philadelphia_PA_US_19104",
+          "ShimSetting": [
+            3733,
+            2549,
+            372,
+            -173,
+            97,
+            -350,
+            27,
+            39
+          ],
+          "ReceiveCoilActiveElements": "HC1-7;NC1",
+          "PatientPosition": "HFS",
+          "SequenceName": "_tfl3d1_16ns",
+          "StudyInstanceUID": "1.3.12.2.1107.5.2.43.66044.30000021010817494961400000133",
+          "SeriesNumber": 7,
+          "ImageType": [
+            "ORIGINAL",
+            "PRIMARY",
+            "M",
+            "ND",
+            "NORM"
+          ],
+          "ReceiveCoilName": "HeadNeck_64",
+          "EchoTime": 0.00224,
+          "SequenceVariant": "SK_SP_MP",
+          "ImagingFrequency": 123.263,
+          "BaseResolution": 320,
+          "StudyID": "1",
+          "ScanOptions": "IR_WE",
+          "PhaseResolution": 1,
+          "SoftwareVersions": "syngo_MR_E11",
+          "StationName": "AWP66044",
+          "SeriesInstanceUID": "1.3.12.2.1107.5.2.43.66044.2021012612441156695578766.0.0.0",
+          "Modality": "MR",
+          "AcquisitionTime": "12:37:29.315000",
+          "BIDS": {
+            "Acq": "",
+            "Ce": "",
+            "Dir": "",
+            "Echo": "",
+            "error_message": "",
+            "Filename": "sub-124822_ses-124822x20210126x3TxABC_T1w.nii.gz",
+            "Folder": "anat",
+            "ignore": "",
+            "IntendedFor": "",
+            "Mod": "",
+            "Modality": "T1w",
+            "Path": "sub-124822/ses-124822x20210126x3TxABC/anat",
+            "Rec": "",
+            "Run": "",
+            "Task": "",
+            "template": "anat_file",
+            "valid": true
+          }
+        },
+        "size": 21920469,
+        "zip_member_count": null,
+        "version": 1,
+        "file_id": "622fbff9fa62e8ba6ce3156f",
+        "origin": {
+          "type": "job",
+          "id": "601058ecdc7fac1e91849a99"
+        }
+      },
+      "location": {
+        "path": "/flywheel/v0/input/T1w/1.3.12.2.1107.5.2.43.66044.2021012612441156695578766.0.0.0.nii.gz",
+        "name": "1.3.12.2.1107.5.2.43.66044.2021012612441156695578766.0.0.0.nii.gz"
+      },
+      "base": "file"
+    },
+    "api-key": {
+      "key": "upenn.flywheel.io:djEhzT8I-B7x52ZYrvSyOLUKwvGX3rJzaXV9xyUPYhbKZAIC_LEHtgBqw",
+      "base": "api-key"
+    }
+  },
+  "destination": {
+    "id": "64d6cf9b05c07f284b3675d3",
+    "type": "analysis"
+  }
