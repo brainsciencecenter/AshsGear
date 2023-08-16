@@ -117,7 +117,23 @@ function niftiIfNeeded {
 }
 
 function uploadQaFile {
-	true
+	local ProjectPath="$1"
+	local File="$2"
+
+	local Tags=
+
+	case "$File" in
+		*left*)
+			Tags=ReadyforASHSQC-left
+			;;
+
+		*right*)
+			Tags=ReadyforASHSQC-right
+			;;
+
+	esac
+
+	fwuploadfile -p "$ProjectPath" -t "$Tags" "$File"
 }
 
 apt install -y wget jq git time 
@@ -148,9 +164,7 @@ then
 EOF
 fi
 
-opt_q=Acquisition
-
-while getopts 1:2:c:dnqtvw: arg
+while getopts 1:2:c:dnq:tvw: arg
 do
 
     case "$arg" in
@@ -169,10 +183,17 @@ sys sed -i 's,| bc,| /usr/bin/bc,' /app/ashs/bin/ashs_grid.sh
 
 [ -n "$opt_c" ] && ConfigJsonFile="$opt_c"
 
-[ -n "$opt_d" ] && [ -e "$ConfigJsonFile" ] && jq . "$ConfigJsonFile"
+[ -n "$opt_d" ] && [ -e "$ConfigJsonFile" ] && jq -r . "$ConfigJsonFile"
 [ -n "$opt_d" ] && find ${FLYWHEEL}
 
-jq . "$ConfigJsonFile"
+jq -r . "$ConfigJsonFile"
+
+if [ -z "$opt_q" ]
+then
+	T1InputId=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
+	ProjectId=$(fwget -1 "$T1InputId" | jq -r .parents.project)
+	opt_q=$(fwget -1 "$ProjectId" | jq -r '.info.AshsQaLocation')
+fi
 
 if [ -n "$opt_w" ]
 then
@@ -388,16 +409,27 @@ sys itksnap-wt -i $ItkSnapFile \
     	    BaseName=$(basename -s .png "$i")
 
 	    case "$opt_q" in
-	        *Analysis*|analysis)
-    		    sys cp "$i" "${OutputDir}/${IdString}_${Atlas}_${BaseName}_${RunDate}.png"
+	        Analysis|analysis)
+    		    sys cp "$i" "${OutputDir}/${IdString}_${Atlas}_${BaseName}.png"
 		    ;;
 
-	        *Acquisition*|*acquisition*)
-		    sys uploadQaFile "$i"
-		    ;;
-		
 	        "None")
 		    true
+		    ;;
+
+		Acquisition|acquisition)
+    		    FileName="${WorkDir}/${IdString}_${Atlas}_${BaseName}.png"
+		    sys mv "$i" "$FileName"
+
+		    ProjectPath=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
+		    sys uploadQaFile "$ProjectPath"  "$FileName"
+		    ;;
+
+		*)
+    		    FileName="${WorkDir}/${IdString}_${Atlas}_${BaseName}.png"
+		    sys mv "$i" "$FileName"
+
+		    sys uploadQaFile "$opt_q"  "$FileName"
 		    ;;
 
             esac

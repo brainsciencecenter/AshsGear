@@ -6,7 +6,6 @@ CURDIR=${BASEDIR}/docker-ashs-base
 
 # Command:
 docker run --rm -it --entrypoint='/bin/bash'\
-	-e PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\
 	-e FLYWHEEL=/flywheel/v0\
 	-v ${BASEDIR}/data/input:/flywheel/v0/input/T1w\
 	-v ${BASEDIR}/data/input:/flywheel/v0/input/T2w\
