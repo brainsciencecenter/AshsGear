@@ -192,7 +192,14 @@ if [ -z "$opt_q" ]
 then
 	T1InputId=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
 	ProjectId=$(fwget -1 "$T1InputId" | jq -r .parents.project)
-	opt_q=$(fwget -1 "$ProjectId" | jq -r '.info.AshsQaLocation')
+
+	QaPlacement=$(jq -r '.config.QaPlacement' "$ConfigJsonFile")
+	if [ -n "$QaPlacement" ]
+	then
+		opt_q="$QaPlacement"
+	else
+		opt_q=$(fwget -1 "$ProjectId" | jq -r '.info.AshsQaLocation')
+	fi
 fi
 
 if [ -n "$opt_w" ]
@@ -404,7 +411,7 @@ sys itksnap-wt -i $ItkSnapFile \
 
         fi
 
-    	for i in $(find "${WorkDir}" -type f | grep png | grep -E 'bootstrap_(corr|heur)_(left|right|usegray)')
+    	for i in $(find "${WorkDir}" -type f | grep png | grep -E 'bootstrap_heur_(left|right)')
     	do
     	    BaseName=$(basename -s .png "$i")
 
