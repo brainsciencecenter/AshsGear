@@ -4,7 +4,7 @@
     "command": "./run",
     "description": "ASHS: Automatic Segmentation of Hippocampal Subfields",
     "environment": {
-        "PATH": "/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "PATH": "/flywheel/v0/flywheel/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
         "LANG": "C.UTF-8",
         "GPG_KEY": "E3FF2839C048B25C084DEBE9B26995E310250568",
         "PYTHON_VERSION": "3.9.6",
@@ -14,11 +14,12 @@
         "PYTHON_GET_PIP_SHA256": "fa6f3fb93cce234cd4e8dd2beb54a51ab9c247653b52855a48dd44e6b21ff28b",
         "FLYWHEEL": "/flywheel/v0",
         "FLYWHEEL_INPUT": "/flywheel/v0/input",
-        "FLYWHEEL_OUTPUT": "/flywheel/v0/output"
+        "FLYWHEEL_OUTPUT": "/flywheel/v0/output",
+        "PYTHONPATH": "/usr/local/lib/python3.9/site-packages:/flywheel/v0/flywheel/lib"
     },
     "custom": {
         "gear-builder": {
-            "image": "ashs:0.1.19",
+            "image": "ashs:0.1.26",
             "category": "analysis"
         },
         "flywheel": {
@@ -29,7 +30,7 @@
         "T1w": {
             "base": "file",
             "description": "T1 weighted MRI dicom or nifti file.",
-            "optional": true,
+            "optional": false,
             "type": {
                 "enum": [
                     "dicom"
@@ -52,9 +53,10 @@
     },
     "config": {
         "ASHS_Atlases": {
-            "default": "ASHS-HarP",
-            "description": "Segmentation service to use.  defaults to ASHS-HarP. May be one of ASHS-Magdeburg, ASHS-PMC-T1, ASHS-PMC-T2, ASHS-Princeton, ASHS-Utrect",
+            "default": "None",
+            "description": "Segmentation service to use.  May be one of ASHS-Magdeburg, ASHS-PMC-T1, ASHS-PMC-T2, ASHS-Princeton, ASHS-Utrect",
             "enum": [
+                "None",
                 "ASHS-ABC-3T",
                 "ASHS-ABC-7T",
                 "ASHS-HarP",
@@ -62,6 +64,17 @@
                 "ASHS-PMC",
                 "ASHS-PMC-T1",
                 "ASHS-Princeton"
+            ],
+            "type": "string"
+        },
+        "QaPlacement": {
+            "default": "Acquisition",
+            "description": "Where to place QA output files",
+            "enum": [
+                "",
+                "None",
+                "Acquisition",
+                "Analysis"
             ],
             "type": "string"
         },
@@ -76,5 +89,5 @@
     "source": "",
     "url": "",
     "license": "MIT",
-    "version": "0.1.19"
+    "version": "0.1.26"
 }

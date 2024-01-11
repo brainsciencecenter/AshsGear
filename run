@@ -133,7 +133,7 @@ function uploadQaFile {
 
 	esac
 
-	fwuploadfile -p "$ProjectPath" -t "$Tags" "$File"
+	sys fwuploadfile -p "$ProjectPath" -t "$Tags" "$File"
 }
 
 apt install -y wget jq git time 
@@ -164,6 +164,8 @@ then
 EOF
 fi
 
+opt_v=1
+
 while getopts 1:2:c:dnq:tvw: arg
 do
 
@@ -188,10 +190,11 @@ sys sed -i 's,| bc,| /usr/bin/bc,' /app/ashs/bin/ashs_grid.sh
 
 jq -r . "$ConfigJsonFile"
 
+T1InputId=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
+ProjectId=$(fwget -1 "$T1InputId" | jq -r .parents.project)
+
 if [ -z "$opt_q" ]
 then
-	T1InputId=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
-	ProjectId=$(fwget -1 "$T1InputId" | jq -r .parents.project)
 
 	QaPlacement=$(jq -r '.config.QaPlacement' "$ConfigJsonFile")
 	if [ -n "$QaPlacement" ]
@@ -212,14 +215,24 @@ fi
 [ -d "$WorkDir" ] || mkdir "$WorkDir"
 TmpDir="$WorkDir"
 
+#
+# Find the atlas list
+#   Config file
+#   Project default
+#   Command args
+
+
 if [ -e "$ConfigJsonFile" ]
 then
 	T1Input=$(jq -r '.inputs.T1w.location.path' "$ConfigJsonFile" | grep -v null)
 	Atlases=( $(jq -r '.config.ASHS_Atlases' "$ConfigJsonFile" | grep -v null) )
 fi
 
-#
-# *** The atlas checks should be done inthe for loop
+if [ -z "$Atlases" ]
+then
+	Atlases=( $(fwget -1 "$ProjectId" | jq -r '.info.AshsDefaultAtlas') )
+fi
+
 #
 if [ -n "$1" ] && [ "$1" == "all" ]
 then
@@ -411,22 +424,26 @@ sys itksnap-wt -i $ItkSnapFile \
 
         fi
 
+	sys find "${WorkDir}" -type f
+
     	for i in $(find "${WorkDir}" -type f | grep png | grep -E 'bootstrap_heur_(left|right)')
     	do
     	    BaseName=$(basename -s .png "$i")
+
+	    echo "opt_q = '$opt_q'" 1>&2
 
 	    case "$opt_q" in
 	        Analysis|analysis)
     		    sys cp "$i" "${OutputDir}/${IdString}_${Atlas}_${BaseName}.png"
 		    ;;
 
-	        "None")
+	        "None"|"null")
 		    true
 		    ;;
 
 		Acquisition|acquisition)
     		    FileName="${WorkDir}/${IdString}_${Atlas}_${BaseName}.png"
-		    sys mv "$i" "$FileName"
+		    sys cp "$i" "$FileName"
 
 		    ProjectPath=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
 		    sys uploadQaFile "$ProjectPath"  "$FileName"
@@ -434,7 +451,7 @@ sys itksnap-wt -i $ItkSnapFile \
 
 		*)
     		    FileName="${WorkDir}/${IdString}_${Atlas}_${BaseName}.png"
-		    sys mv "$i" "$FileName"
+		    sys cp "$i" "$FileName"
 
 		    sys uploadQaFile "$opt_q"  "$FileName"
 		    ;;
