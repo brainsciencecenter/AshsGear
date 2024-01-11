@@ -225,7 +225,7 @@ TmpDir="$WorkDir"
 if [ -e "$ConfigJsonFile" ]
 then
 	T1Input=$(jq -r '.inputs.T1w.location.path' "$ConfigJsonFile" | grep -v null)
-	Atlases=( $(jq -r '.config.ASHS_Atlases' "$ConfigJsonFile" | grep -v null) )
+	Atlases=( $(jq -r '.config.ASHS_Atlases' "$ConfigJsonFile" | grep -v null | grep -v None) )
 fi
 
 if [ -z "$Atlases" ]
