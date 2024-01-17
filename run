@@ -426,15 +426,16 @@ sys itksnap-wt -i $ItkSnapFile \
 
 	sys find "${WorkDir}" -type f
 
-    	for i in $(find "${WorkDir}" -type f | grep png | grep -E 'bootstrap_heur_(left|right)')
+	regex=$(echo "$AtlasJson" | jq -r '.QaFileRegEx | @csv' | sed -r 's/"(.*)"$/(\1)/; s/","/)|(/' )
+    	for i in $(find "${WorkDir}" -type f | grep -E "$regex")
     	do
-    	    BaseName=$(basename -s .png "$i")
+    	    BaseName=$(basename "$i" )
 
 	    echo "opt_q = '$opt_q'" 1>&2
 
 	    case "$opt_q" in
 	        Analysis|analysis)
-    		    sys cp "$i" "${OutputDir}/${IdString}_${Atlas}_${BaseName}.png"
+    		    sys cp "$i" "${OutputDir}/${IdString}_${Atlas}_${BaseName}"
 		    ;;
 
 	        "None"|"null")
@@ -442,7 +443,7 @@ sys itksnap-wt -i $ItkSnapFile \
 		    ;;
 
 		Acquisition|acquisition)
-    		    FileName="${WorkDir}/${IdString}_${Atlas}_${BaseName}.png"
+    		    FileName="${WorkDir}/${IdString}_${Atlas}_${BaseName}"
 		    sys cp "$i" "$FileName"
 
 		    ProjectPath=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
@@ -450,7 +451,7 @@ sys itksnap-wt -i $ItkSnapFile \
 		    ;;
 
 		*)
-    		    FileName="${WorkDir}/${IdString}_${Atlas}_${BaseName}.png"
+    		    FileName="${WorkDir}/${IdString}_${Atlas}_${BaseName}"
 		    sys cp "$i" "$FileName"
 
 		    sys uploadQaFile "$opt_q"  "$FileName"

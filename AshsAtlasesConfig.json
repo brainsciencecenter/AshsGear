@@ -5,6 +5,10 @@
 	    "T1" : "testdata/124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz"
     },
     "md5Url": "https://upenn.box.com/shared/static/602oyyvkiyukeqwej6444vklwvyydhkz.md5sum",
+    "QaFileRegEx": [ 
+	"final/.*_(left|right)_lfseg_heur.nii.gz",
+	"qa/.*qa_seg_bootstrap_heur_(left|right)_qa.png" 
+    ],
     "Url": "https://upenn.box.com/shared/static/9q9q9e5d58mg9f0aurcjkdx1bt3anvp7.tgz"
 }
 {
@@ -25,6 +29,10 @@
 	    "T2" : "testdata/124822x20210126x3TxABC/T2_2D_0.4x0.4x1.2mm_180flip_ND.nii.gz"
     },
     "md5Url": "https://upenn.box.com/shared/static/fvl2977kvx1a5hk62xlp75l66aef5f34.md5sum",
+    "QaFileRegEx": [ 
+	"_(left|right)_lfseg_corr_usegray.nii.gz",
+	"qa_seg_bootstrap_corr_usegray_(left|right)_qa.png" 
+    ],
     "Url": "https://upenn.box.com/shared/static/907f7xl7z4mukwvvdzpdlduq3lxkd2xc.tgz"
 }
 {
@@ -34,6 +42,10 @@
 	    "T1" : "testdata/124822x20210126x7TxABC/T2_Coronal_p2_0.4x0.4x1.0mm_ND.nii.gz"
     },
     "md5Url": "https://upenn.box.com/shared/static/gh7kajy3yw3udk48oa996adykrgtqnn4.md5sum",
+    "QaFileRegEx": [ 
+	"_(left|right)_lfseg_corr_usegray.nii.gz",
+	"qa_seg_bootstrap_heur_(left|right)_qa.png" 
+    ],
     "Url": "https://upenn.box.com/shared/static/v2sxlxannw31h54vwybo0mpt85vkoyaj.tgz"
 }
 {
@@ -53,9 +65,13 @@
 	    "T1" : "testdata/124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz"
     },
     "md5Url": "https://upenn.box.com/shared/static/i5k4gkm93v6lx7ylsq0n03m4nc4wbwig.md5sum",
-    "Url": "https://upenn.box.com/shared/static/uijwemiz4rvp5kbtqoat8c8g4c8kgw1h.tgz",
     "SubAtlas": "ASHS-ICV",
-    "CommandArgs": "-I /app/atlas/data/ashs_atlas_icv/final -L 101 -R 102 -J 100"
+    "CommandArgs": "-I /app/atlas/data/ashs_atlas_icv/final -L 101 -R 102 -J 100",
+    "QaFileRegEx": [ 
+	"ashs_icv/final/ashs_icv_left_lfseg_corr_nogray.nii.gz",
+	"ashs_icv/qa/qa_seg_multiatlas_corr_nogray_left_qa.png" 
+    ],
+    "Url": "https://upenn.box.com/shared/static/uijwemiz4rvp5kbtqoat8c8g4c8kgw1h.tgz"
 }
 {
     "Atlas": "ASHS-ICV",

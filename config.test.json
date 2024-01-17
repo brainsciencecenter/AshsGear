@@ -1,15 +1,16 @@
 {
   "config": {
-    "ASHS_Atlases": "ASHS-ABC-3T",
+    "ASHS_Atlases": "None",
+    "QaPlacement": "",
     "ProjectName": ""
   },
   "job": {
-    "id": "64d6cf9b05c07f284b3675d5",
+    "id": "64dd59f29f8a14b2e30be619",
     "gear_info": {
-      "id": "64d6cf18ea97754993e468ad",
+      "id": "64dd59bb248e913f2c367711",
       "category": "analysis",
       "name": "ashs",
-      "version": "0.1.18",
+      "version": "0.1.21",
       "capabilities": null
     }
   },
@@ -149,12 +150,12 @@
       "base": "file"
     },
     "api-key": {
-      "key": "upenn.flywheel.io:djEhzT8I-B7x52ZYrvSyOLUKwvGX3rJzaXV9xyUPYhbKZAIC_LEHtgBqw",
+      "key": "upenn.flywheel.io:djEx2Zsr1-08vml_HSaEmup2TAo2sQkZLd_UhCwS2ZVbgDL5Rtd0XbniA",
       "base": "api-key"
     }
   },
   "destination": {
-    "id": "64d6cf9b05c07f284b3675d3",
+    "id": "64dd59f29f8a14b2e30be617",
     "type": "analysis"
   }
 }
