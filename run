@@ -123,11 +123,11 @@ function uploadQaFile {
 	local Tags=
 
 	case "$File" in
-		*left*)
+		*left*.png)
 			Tags=ReadyforASHSQC-left
 			;;
 
-		*right*)
+		*right*.png)
 			Tags=ReadyforASHSQC-right
 			;;
 
@@ -426,16 +426,25 @@ sys itksnap-wt -i $ItkSnapFile \
 
 	sys find "${WorkDir}" -type f
 
+	ProjectPath=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
+
 	regex=$(echo "$AtlasJson" | jq -r '.QaFileRegEx | @csv' | sed -r 's/"(.*)"$/(\1)/; s/","/)|(/' )
+
     	for i in $(find "${WorkDir}" -type f | grep -E "$regex")
     	do
     	    BaseName=$(basename "$i" )
 
 	    echo "opt_q = '$opt_q'" 1>&2
+	    echo "BaseName = '$BaseName'" 1>&2
+	    echo "WorkDir = '$WorkDir'" 1>&2
+	    echo "OutputDir = '$OutputDir'" 1>&2
+	    echo "IdString = '$IdString'" 1>&2
+
+    	    OutputFile="${OutputDir}/${IdString}_${Atlas}_${BaseName}"
 
 	    case "$opt_q" in
 	        Analysis|analysis)
-    		    sys cp "$i" "${OutputDir}/${IdString}_${Atlas}_${BaseName}"
+    		    sys cp "$i" "${OutputFile}"
 		    ;;
 
 	        "None"|"null")
@@ -443,18 +452,15 @@ sys itksnap-wt -i $ItkSnapFile \
 		    ;;
 
 		Acquisition|acquisition)
-    		    FileName="${WorkDir}/${IdString}_${Atlas}_${BaseName}"
-		    sys cp "$i" "$FileName"
+		    sys cp "$i" "$OutputFile"
 
-		    ProjectPath=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
-		    sys uploadQaFile "$ProjectPath"  "$FileName"
+		    sys uploadQaFile "$ProjectPath"  "$OutputFile"
 		    ;;
 
 		*)
-    		    FileName="${WorkDir}/${IdString}_${Atlas}_${BaseName}"
-		    sys cp "$i" "$FileName"
+		    sys cp "$i" "$OutputFile"
 
-		    sys uploadQaFile "$opt_q"  "$FileName"
+		    sys uploadQaFile "$opt_q"  "$OutputFile"
 		    ;;
 
             esac
