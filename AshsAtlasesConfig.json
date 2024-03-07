@@ -66,11 +66,6 @@
     },
     "md5Url": "https://upenn.box.com/shared/static/i5k4gkm93v6lx7ylsq0n03m4nc4wbwig.md5sum",
     "SubAtlas": "ASHS-ICV",
-    "CommandArgs": "-I /app/atlas/data/ashs_atlas_icv/final -L 101 -R 102 -J 100",
-    "QaFileRegEx": [ 
-	"ashs_icv/final/ashs_icv_left_lfseg_corr_nogray.nii.gz",
-	"ashs_icv/qa/qa_seg_multiatlas_corr_nogray_left_qa.png" 
-    ],
     "Url": "https://upenn.box.com/shared/static/uijwemiz4rvp5kbtqoat8c8g4c8kgw1h.tgz"
 }
 {
@@ -80,6 +75,10 @@
 	    "T1" : "testdata/124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz"
     },
     "md5Url": "https://upenn.box.com/shared/static/z0nh75zpit2ll2c2by1zwvyiqrubjbvk.md5sum",
+    "QaFileRegEx": [ 
+	"final/.*_left_lfseg_corr_nogray.nii.gz",
+	"qa/qa_seg_multiatlas_corr_nogray_left_qa.png" 
+    ],
     "Url": "https://upenn.box.com/shared/static/1yy653yuy2zcd2rots1eaftg7theyyoq.tgz"
 }
 {

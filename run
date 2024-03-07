@@ -230,7 +230,7 @@ fi
 
 if [ -z "$Atlases" ]
 then
-	Atlases=( $(fwget -1 "$ProjectId" | jq -r '.info.AshsDefaultAtlas') )
+	Atlases=( $(fwget -1 "$ProjectId" | jq -r '.info.AshsDefaultAtlas' | sed 's/, */ /g') )
 fi
 
 #
@@ -377,7 +377,7 @@ do
 #			-labels-add $ASHS_ATLAS/snap/snaplabels.txt $SHIFT_RIGHT "Right %s" \
 #			-o $WORKDIR/${IDSTRING}_results.itksnap
 
-sys itksnap-wt -i $ItkSnapFile \
+	sys itksnap-wt -i $ItkSnapFile \
 		   -las $OutputDir/${IdString}_${Atlas}_lfseg_corr_usegray.nii.gz -psn "JLF/CL result" \
 		   -las $OutputDir/${IdString}_${Atlas}_lfseg_corr_nogray.nii.gz -psn "JLF/CL-lite result" \
 		   -las $OutputDir/${IdString}_${Atlas}_lfseg_heur.nii.gz -psn "JLF result" \
@@ -387,48 +387,61 @@ sys itksnap-wt -i $ItkSnapFile \
 		   -o $ItkSnapFile
 
 
+	AcquisitionId=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
 	
 	if [ "$Atlas" == "ASHS-HarP" ]
 	then
 
-	    SubAtlas=$(echo "$AtlasJson" | jq -r '.SubAtlas')
-	    SubAtlasJson=$(installAshsAtlas "$SubAtlas")
+		LeftHippocampusVolume=$(awk '{print $5}' ${OutputDir}/${Atlas}/final/${Atlas}_left_bootstrap_corr_nogray_volumes.txt)
+		RightHippocampusVolume=$(awk '{print $5}' ${OutputDir}/${Atlas}/final/${Atlas}_right_bootstrap_corr_nogray_volumes.txt)
+		fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "+={\"LeftHippocampusVolume\": ${LeftHippocampusVolume}, \"RightHippocampusVolume\": ${RightHippocampusVolume} }" "$AcquisitionId"
 
-	    SubAtlasDirectory=$(echo "$SubAtlasJson" | jq -r '.Directory')
-	    SubAtlasSnaplabelsInputTxtFile="${SubAtlasDirectory}/snap/snaplabels.txt"
-
-	    echo "SubAtlasDirectory '$SubAtlasDirectory'"
-
-	    AshsCmd=(
-		ashs_main.sh -a "$SubAtlasDirectory"  -g "$T1NiftiFile" -f "$T2NiftiFile"  -w "$WorkDir/ashs_icv" -P -B
-	    )
-
-	    [ -n "$opt_d" ] || sys "${AshsCmd[@]}"
-
-	    sys ls -l $WorkDir
-	    sys ls -l $WorkDir/ashs_icv
-	    sys ls -l $WorkDir/ashs_icv/final
-
-	    c3d $WorkDir/ashs_icv/final/ashs_icv_left_lfseg_corr_nogray.nii.gz \
-		-shift $SHIFT_ICV -replace $SHIFT_ICV 0 -type uchar -o \
-		$OutputDir/${IdString}_${Atlas}_icv.nii.gz
-
-	    
-	    itksnap-wt -i ${ItkSnapFile} \
-		       -las $OutputDir/${IdString}_${Atlas}_icv.nii.gz -psn "ICV" \
-		       -labels-add ${SubAtlasSnaplabelsInputTxtFile} $SHIFT_ICV "%s" \
-		       -o ${ItkSnapFile}
-
-	    awk '{ if ($1 ~ /^ *[0-9]+$/ && $1 > 0) { printf("%5d %5d %4d %4d       %2d %2d %2d    %s\n",$1 + '"$SHIFT_ICV"',$2,$3,$4,$5,$6,$7,$8)   }} ' "$SubAtlasSnaplabelsInputTxtFile" >> "$SnaplabelsOutputTxtFile"
-
-
+#	    SubAtlas=$(echo "$AtlasJson" | jq -r '.SubAtlas')
+#	    SubAtlasJson=$(installAshsAtlas "$SubAtlas")
+#
+#	    SubAtlasDirectory=$(echo "$SubAtlasJson" | jq -r '.Directory')
+#	    SubAtlasSnaplabelsInputTxtFile="${SubAtlasDirectory}/snap/snaplabels.txt"
+#
+#	    echo "SubAtlasDirectory '$SubAtlasDirectory'"
+#
+#	    AshsCmd=(
+#		ashs_main.sh -a "$SubAtlasDirectory"  -g "$T1NiftiFile" -f "$T2NiftiFile"  -w "$WorkDir/ashs_icv" -P -B
+#	    )
+#
+#	    [ -n "$opt_d" ] || sys "${AshsCmd[@]}"
+#
+#	    sys ls -l $WorkDir
+#	    sys ls -l $WorkDir/ashs_icv
+#	    sys ls -l $WorkDir/ashs_icv/final
+#
+#	    c3d $WorkDir/ashs_icv/final/ashs_icv_left_lfseg_corr_nogray.nii.gz \
+#		-shift $SHIFT_ICV -replace $SHIFT_ICV 0 -type uchar -o \
+#		$OutputDir/${IdString}_${Atlas}_icv.nii.gz
+#
+#	    
+#	    itksnap-wt -i ${ItkSnapFile} \
+#		       -las $OutputDir/${IdString}_${Atlas}_icv.nii.gz -psn "ICV" \
+#		       -labels-add ${SubAtlasSnaplabelsInputTxtFile} $SHIFT_ICV "%s" \
+#		       -o ${ItkSnapFile}
+#
+#	    awk '{ if ($1 ~ /^ *[0-9]+$/ && $1 > 0) { printf("%5d %5d %4d %4d       %2d %2d %2d    %s\n",$1 + '"$SHIFT_ICV"',$2,$3,$4,$5,$6,$7,$8)   }} ' "$SubAtlasSnaplabelsInputTxtFile" >> "$SnaplabelsOutputTxtFile"
+#
         fi
+	if [ "$Atlas" == "ASHS-ICV" ]
+	then
+		ICV=$(c3d ${OutputDir}/${Atlas}/final/${Atlas}_left_lfseg_corr_nogray.nii.gz -dup -lstat | awk '$1 == 0 {print $7}')
+
+		fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "+={\"ICV\": ${ICV} }" "$AcquisitionId"
+	fi
 
 	sys find "${WorkDir}" -type f
 
-	ProjectPath=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
 
 	regex=$(echo "$AtlasJson" | jq -r '.QaFileRegEx | @csv' | sed -r 's/"(.*)"$/(\1)/; s/","/)|(/' )
+	if [ -z "$regex" ]
+	then
+		regex="^$"
+	fi
 
     	for i in $(find "${WorkDir}" -type f | grep -E "$regex")
     	do
@@ -454,7 +467,7 @@ sys itksnap-wt -i $ItkSnapFile \
 		Acquisition|acquisition)
 		    sys cp "$i" "$OutputFile"
 
-		    sys uploadQaFile "$ProjectPath"  "$OutputFile"
+		    sys uploadQaFile "$AcquisitionId"  "$OutputFile"
 		    ;;
 
 		*)

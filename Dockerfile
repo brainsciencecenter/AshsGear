@@ -28,6 +28,8 @@ COPY fw /usr/local/bin/fw
 RUN apt-get update
 RUN apt-get install -y bc curl git parallel imagemagick wget unzip wget jq git time build-essential autoconf libtool python3
 
+RUN git clone https://github.com:/brainsciencecenter/flywheel.git /usr/local/flywheel
+
 # Set the working directory for the ASHS app
 WORKDIR ${FLYWHEEL}
 
