@@ -323,17 +323,6 @@ do
 	sys ls "$WorkDir"
 
 
-	# TODO: package up the results into a mergeable workspace (?)
-#	for what in heur corr_usegray corr_nogray; do
-#		$ASHS_ROOT/ext/$(uname)/bin/c3d \
-#			$WORKDIR/ashs/final/${IDSTRING}_left_lfseg_${what}.nii.gz \
-#			-shift $SHIFT_LEFT -replace $SHIFT_LEFT 0 \
-#			$WORKDIR/ashs/final/${IDSTRING}_right_lfseg_${what}.nii.gz \
-#			-shift $SHIFT_RIGHT -replace $SHIFT_RIGHT 0 -add \
-#			-type uchar -o $WORKDIR/${IDSTRING}_lfseg_${what}.nii.gz
-#	done
-#
-
 	for what in heur corr_usegray corr_nogray
 	do
 	    sys c3d $WorkDir/final/${AshsPrefix}_left_lfseg_${what}.nii.gz \
@@ -368,15 +357,6 @@ do
 
 	sys "${ITKSnapCmd[@]}"
 
-#	itksnap-wt -i $WSFILE \
-#			-las $WORKDIR/${IDSTRING}_lfseg_corr_usegray.nii.gz -psn "JLF/CL result" \
-#			-las $WORKDIR/${IDSTRING}_lfseg_corr_nogray.nii.gz -psn "JLF/CL-lite result" \
-#			-las $WORKDIR/${IDSTRING}_lfseg_heur.nii.gz -psn "JLF result" \
-#			-labels-clear \
-#			-labels-add $ASHS_ATLAS/snap/snaplabels.txt $SHIFT_LEFT "Left %s" \
-#			-labels-add $ASHS_ATLAS/snap/snaplabels.txt $SHIFT_RIGHT "Right %s" \
-#			-o $WORKDIR/${IDSTRING}_results.itksnap
-
 	sys itksnap-wt -i $ItkSnapFile \
 		   -las $OutputDir/${IdString}_${Atlas}_lfseg_corr_usegray.nii.gz -psn "JLF/CL result" \
 		   -las $OutputDir/${IdString}_${Atlas}_lfseg_corr_nogray.nii.gz -psn "JLF/CL-lite result" \
@@ -392,44 +372,14 @@ do
 	if [ "$Atlas" == "ASHS-HarP" ]
 	then
 
-		LeftHippocampusVolume=$(awk '{print $5}' ${OutputDir}/${Atlas}/final/${Atlas}_left_bootstrap_corr_nogray_volumes.txt)
-		RightHippocampusVolume=$(awk '{print $5}' ${OutputDir}/${Atlas}/final/${Atlas}_right_bootstrap_corr_nogray_volumes.txt)
+		LeftHippocampusVolume=$(awk '{print $5}' ${WorkDir}/final/${AshsPrefix}_left_bootstrap_corr_nogray_volumes.txt)
+		RightHippocampusVolume=$(awk '{print $5}' ${WorkDir}/final/${AshsPrefix}_right_bootstrap_corr_nogray_volumes.txt)
 		fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "+={\"LeftHippocampusVolume\": ${LeftHippocampusVolume}, \"RightHippocampusVolume\": ${RightHippocampusVolume} }" "$AcquisitionId"
-
-#	    SubAtlas=$(echo "$AtlasJson" | jq -r '.SubAtlas')
-#	    SubAtlasJson=$(installAshsAtlas "$SubAtlas")
-#
-#	    SubAtlasDirectory=$(echo "$SubAtlasJson" | jq -r '.Directory')
-#	    SubAtlasSnaplabelsInputTxtFile="${SubAtlasDirectory}/snap/snaplabels.txt"
-#
-#	    echo "SubAtlasDirectory '$SubAtlasDirectory'"
-#
-#	    AshsCmd=(
-#		ashs_main.sh -a "$SubAtlasDirectory"  -g "$T1NiftiFile" -f "$T2NiftiFile"  -w "$WorkDir/ashs_icv" -P -B
-#	    )
-#
-#	    [ -n "$opt_d" ] || sys "${AshsCmd[@]}"
-#
-#	    sys ls -l $WorkDir
-#	    sys ls -l $WorkDir/ashs_icv
-#	    sys ls -l $WorkDir/ashs_icv/final
-#
-#	    c3d $WorkDir/ashs_icv/final/ashs_icv_left_lfseg_corr_nogray.nii.gz \
-#		-shift $SHIFT_ICV -replace $SHIFT_ICV 0 -type uchar -o \
-#		$OutputDir/${IdString}_${Atlas}_icv.nii.gz
-#
-#	    
-#	    itksnap-wt -i ${ItkSnapFile} \
-#		       -las $OutputDir/${IdString}_${Atlas}_icv.nii.gz -psn "ICV" \
-#		       -labels-add ${SubAtlasSnaplabelsInputTxtFile} $SHIFT_ICV "%s" \
-#		       -o ${ItkSnapFile}
-#
-#	    awk '{ if ($1 ~ /^ *[0-9]+$/ && $1 > 0) { printf("%5d %5d %4d %4d       %2d %2d %2d    %s\n",$1 + '"$SHIFT_ICV"',$2,$3,$4,$5,$6,$7,$8)   }} ' "$SubAtlasSnaplabelsInputTxtFile" >> "$SnaplabelsOutputTxtFile"
-#
         fi
+
 	if [ "$Atlas" == "ASHS-ICV" ]
 	then
-		ICV=$(c3d ${OutputDir}/${Atlas}/final/${Atlas}_left_lfseg_corr_nogray.nii.gz -dup -lstat | awk '$1 == 0 {print $7}')
+		ICV=$(c3d ${WorkDir}/final/${AshsPrefix}_left_lfseg_corr_nogray.nii.gz -dup -lstat | awk '$1 == 0 {print $7}')
 
 		fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "+={\"ICV\": ${ICV} }" "$AcquisitionId"
 	fi

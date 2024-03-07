@@ -4,7 +4,7 @@
     "command": "./run",
     "description": "ASHS: Automatic Segmentation of Hippocampal Subfields",
     "environment": {
-        "PATH": "/flywheel/v0/flywheel/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "PATH": "/usr/local/flywheel/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
         "LANG": "C.UTF-8",
         "GPG_KEY": "E3FF2839C048B25C084DEBE9B26995E310250568",
         "PYTHON_VERSION": "3.9.6",
@@ -15,11 +15,11 @@
         "FLYWHEEL": "/flywheel/v0",
         "FLYWHEEL_INPUT": "/flywheel/v0/input",
         "FLYWHEEL_OUTPUT": "/flywheel/v0/output",
-        "PYTHONPATH": "/usr/local/lib/python3.9/site-packages:/flywheel/v0/flywheel/lib"
+        "PYTHONPATH": "/usr/local/lib/python3.9/site-packages:/usr/local/flywheel/lib"
     },
     "custom": {
         "gear-builder": {
-            "image": "ashs:0.1.28",
+            "image": "ashs:0.1.32",
             "category": "analysis"
         },
         "flywheel": {
@@ -89,5 +89,5 @@
     "source": "",
     "url": "",
     "license": "MIT",
-    "version": "0.1.28"
+    "version": "0.1.32"
 }
