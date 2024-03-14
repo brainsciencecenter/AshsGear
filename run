@@ -171,7 +171,7 @@ do
 
     case "$arg" in
 	1|2|c|d|n|q|t|v|w)
-	    eval "opt_${arg}=${OPTARG:=1}"
+	    eval "opt_${arg}='${OPTARG:=1}'"
 	    ;;
     esac
 done
@@ -309,7 +309,7 @@ do
 	#
 	# *** Do we need to worry about ASHS_HOOK_SCRIPT/DATA ?
 	#
-        [ -d "$opt_d" ] || sys "${AshsCmd[@]}"
+        [ -d "$opt_d" ] || sys "${AshsCmd[@]}" || exit "$?"
 
 	AshsPrefix=$(basename "$WorkDir")
 	SnaplabelsInputTxtFile="${AtlasDirectory}/snap/snaplabels.txt"
@@ -372,16 +372,16 @@ do
 	if [ "$Atlas" == "ASHS-HarP" ]
 	then
 
-		LeftHippocampusVolume=$(awk '{print $5}' ${WorkDir}/final/${AshsPrefix}_left_bootstrap_corr_nogray_volumes.txt)
-		RightHippocampusVolume=$(awk '{print $5}' ${WorkDir}/final/${AshsPrefix}_right_bootstrap_corr_nogray_volumes.txt)
-		fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "+={\"LeftHippocampusVolume\": ${LeftHippocampusVolume}, \"RightHippocampusVolume\": ${RightHippocampusVolume} }" "$AcquisitionId"
+		LeftHippocampusVolume=$(sys awk '{print $5}' ${WorkDir}/final/${AshsPrefix}_left_bootstrap_corr_nogray_volumes.txt)
+		RightHippocampusVolume=$(sys awk '{print $5}' ${WorkDir}/final/${AshsPrefix}_right_bootstrap_corr_nogray_volumes.txt)
+		sys fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "+={\"LeftHippocampusVolume\": ${LeftHippocampusVolume}, \"RightHippocampusVolume\": ${RightHippocampusVolume} }" "$AcquisitionId"
         fi
 
 	if [ "$Atlas" == "ASHS-ICV" ]
 	then
-		ICV=$(c3d ${WorkDir}/final/${AshsPrefix}_left_lfseg_corr_nogray.nii.gz -dup -lstat | awk '$1 == 0 {print $7}')
+		ICV=$(c3d ${WorkDir}/final/${AshsPrefix}_left_lfseg_corr_nogray.nii.gz -dup -lstat | awk '$1 == 1 {print $7}')
 
-		fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "+={\"ICV\": ${ICV} }" "$AcquisitionId"
+		sys fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "+={\"ICV\": ${ICV} }" "$AcquisitionId"
 	fi
 
 	sys find "${WorkDir}" -type f
