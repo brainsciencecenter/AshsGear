@@ -386,8 +386,7 @@ do
 
 	sys find "${WorkDir}" -type f
 
-
-	regex=$(echo "$AtlasJson" | jq -r '.QaFileRegEx | @csv' | sed -r 's/"(.*)"$/(\1)/; s/","/)|(/' )
+	regex=$(echo "$AtlasJson" | jq -r 'if .QaFileRegEx then .QaFileRegEx | @csv else empty end' | sed -r 's/"(.*)"$/(\1)/; s/","/)|(/' )
 	if [ -z "$regex" ]
 	then
 		regex="^$"
