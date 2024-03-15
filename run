@@ -201,7 +201,7 @@ then
 	then
 		opt_q="$QaPlacement"
 	else
-		opt_q=$(fwget -1 "$ProjectId" | jq -r '.info.AshsQaLocation')
+		opt_q=$(fwget -1 "$ProjectId" | jq -r '.info.AshsSettings.QaLocation')
 	fi
 fi
 
@@ -230,7 +230,7 @@ fi
 
 if [ -z "$Atlases" ]
 then
-	Atlases=( $(fwget -1 "$ProjectId" | jq -r '.info.AshsDefaultAtlas' | sed 's/, */ /g') )
+	Atlases=( $(fwget -1 "$ProjectId" | jq -r '.info.AshsSettings.DefaultAtlas' | sed 's/, */ /g') )
 fi
 
 #
@@ -279,6 +279,9 @@ do
 	fi
 
 	T1NiftiFile=$(niftiIfNeeded "$T1Input")
+	T1NiftiFileStandIn=$(mktemp /tmp/T1-XXXXXXXXXX.nii.gz)
+	cp "$T1NiftiFile" "$T1NiftiFileStandIn"
+
 	IdString=$(basename "$T1NiftiFile" | sed -r 's/.gz$//; s/.zip$//; s/(.nii|.nifti|.dicom|.dcm)$//')
 
 	T2Input="$T1Input"
@@ -294,12 +297,18 @@ do
 
 	T2NiftiFile=$(niftiIfNeeded "$T2Input")
 
+	if [ "$T1NiftiFile" == "$T2NiftiFile" ] 
+	then
+		T2NiftiFileStandIn="$T1NiftiFileStandIn"
+	else
+		T2NiftiFileStandIn=$(mktemp /tmp/T2-XXXXXXXXXX.nii.gz)
+		cp "$T2NiftiFile" "$T2NiftiFileStandIn"
+	fi
+
 	AtlasDirectory=$(echo "$AtlasJson" | jq -r '.Directory')
 	#
-	# Removing the -H option as we don't have hooks
-	#
 	AshsCmd=(
-	    ashs_main.sh -a "$AtlasDirectory"  -g "$T1NiftiFile" -f "$T2NiftiFile"  -w "$WorkDir"  -P
+	    ashs_main.sh -a "$AtlasDirectory"  -g "$T1NiftiFileStandIn" -f "$T2NiftiFileStandIn"  -w "$WorkDir"  -P
 	)
 
 	GitBranch="master"
@@ -309,7 +318,7 @@ do
 	#
 	# *** Do we need to worry about ASHS_HOOK_SCRIPT/DATA ?
 	#
-        [ -d "$opt_d" ] || sys "${AshsCmd[@]}" || exit "$?"
+        [ -d "$opt_d" ] || sys "${AshsCmd[@]}"
 
 	AshsPrefix=$(basename "$WorkDir")
 	SnaplabelsInputTxtFile="${AtlasDirectory}/snap/snaplabels.txt"
@@ -386,7 +395,8 @@ do
 
 	sys find "${WorkDir}" -type f
 
-	regex=$(echo "$AtlasJson" | jq -r 'if .QaFileRegEx then .QaFileRegEx | @csv else empty end' | sed -r 's/"(.*)"$/(\1)/; s/","/)|(/' )
+
+	regex=$(echo "$AtlasJson" | jq -r '.QaFileRegEx | @csv' | sed -r 's/"(.*)"$/(\1)/; s/","/)|(/' )
 	if [ -z "$regex" ]
 	then
 		regex="^$"
