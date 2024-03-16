@@ -149,8 +149,8 @@ TestDataDir=${FLYWHEEL}/testdata
 
 RunDate=$(date +%Y-%m-%d_%H-%M)
 
-SHIFT_LEFT=0
-SHIFT_RIGHT=100
+SHIFT_LEFT=100
+SHIFT_RIGHT=101
 SHIFT_ICV=200
 
 if [ ! -e "${ASHS_ROOT}/bin/identity.mat" ]
@@ -332,14 +332,6 @@ do
 	sys ls "$WorkDir"
 
 
-	for what in heur corr_usegray corr_nogray
-	do
-	    sys c3d $WorkDir/final/${AshsPrefix}_left_lfseg_${what}.nii.gz \
-		-shift $SHIFT_LEFT -replace $SHIFT_LEFT 0 $WorkDir/final/${AshsPrefix}_right_lfseg_${what}.nii.gz \
-		-shift $SHIFT_RIGHT -replace $SHIFT_RIGHT 0 -add -type uchar \
-		-o ${OutputDir}/${IdString}_${Atlas}_lfseg_${what}.nii.gz
-	done
-
 	#
 	# Older versions had different tags for T1 under ASHS-HarP than the other atlases
 	#
@@ -384,11 +376,32 @@ do
 		LeftHippocampusVolume=$(sys awk '{print $5}' ${WorkDir}/final/${AshsPrefix}_left_bootstrap_corr_nogray_volumes.txt)
 		RightHippocampusVolume=$(sys awk '{print $5}' ${WorkDir}/final/${AshsPrefix}_right_bootstrap_corr_nogray_volumes.txt)
 		sys fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "+={\"LeftHippocampusVolume\": ${LeftHippocampusVolume}, \"RightHippocampusVolume\": ${RightHippocampusVolume} }" "$AcquisitionId"
+
+		#for what in heur corr_usegray corr_nogray
+		for what in corr_nogray
+		do
+		    sys c3d														\
+		    		"$WorkDir/final/${AshsPrefix}_left_lfseg_${what}.nii.gz" -shift $SHIFT_LEFT -replace $SHIFT_LEFT 0	\
+				"$WorkDir/final/${AshsPrefix}_right_lfseg_${what}.nii.gz" -shift $SHIFT_RIGHT -replace $SHIFT_RIGHT 0	\
+				-add -type uchar 											\
+				-o "${OutputDir}/${IdString}_${Atlas}_lfseg_${what}.nii.gz"
+		done
+
         fi
 
 	if [ "$Atlas" == "ASHS-ICV" ]
 	then
-		ICV=$(c3d ${WorkDir}/final/${AshsPrefix}_left_lfseg_corr_nogray.nii.gz -dup -lstat | awk '$1 == 1 {print $7}')
+		# Add the ICV image to the project
+		c3d														\
+			"$WorkDir/final/${AshsPrefix}_left_lfseg_corr_nogray.nii.gz" -shift $SHIFT_ICV -replace $SHIFT_ICV 0      	\
+    			-type uchar -o "${OutputDir}/${IdString}_${Atlas}_icv.nii.gz"
+
+#  		itksnap-wt -i $WORKDIR/${IDSTRING}_results.itksnap \
+#    			-las $WORKDIR/${IDSTRING}_icv.nii.gz -psn "ICV" \
+#    			-labels-add $ICV_ATLAS/snap/snaplabels.txt $SHIFT_ICV "%s" \
+#    			-o $WORKDIR/${IDSTRING}_results.itksnap
+
+		ICV=$(c3d "${WorkDir}/final/${AshsPrefix}_left_lfseg_corr_nogray.nii.gz" -dup -lstat | awk '$1 == 1 {print $7}')
 
 		sys fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "+={\"ICV\": ${ICV} }" "$AcquisitionId"
 	fi
@@ -396,7 +409,7 @@ do
 	sys find "${WorkDir}" -type f
 
 
-	regex=$(echo "$AtlasJson" | jq -r '.QaFileRegEx | @csv' | sed -r 's/"(.*)"$/(\1)/; s/","/)|(/' )
+	regex=$(echo "$AtlasJson" | jq -r 'if .QaFileRegEx then .QaFileRegEx | @csv else empty end' | sed -r 's/"(.*)"$/(\1)/; s/","/)|(/' )
 	if [ -z "$regex" ]
 	then
 		regex="^$"
@@ -438,7 +451,6 @@ do
             esac
 	done
 	
-	sys rm -f "$T1OutputNiftiFile" "$T2OutputNiftiFile"
 	sys ls -l "$OutputDir"
 done
 
