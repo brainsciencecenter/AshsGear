@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash  -x
 
 #
 # All atlases use 
@@ -96,12 +96,12 @@ function niftiIfNeeded {
     if echo "$InputFile" | grep -q ".nii.gz$"
     then
 	NiftiFile="$InputFile"
-    elif echo "$InputFile" | grep -q ".dicom.zip$"
+    elif file "$InputFile" | grep -q "Zip archive data"
     then
 	DicomDir=$(mktemp -d "${TmpDir}/DicomDir-XXXXXXX")
 	[ -d "$DicomDir" ] || mkdir -p "$DicomDir"
 
-	NiftiFile="${TmpDir}/$(basename "$InputFile" | sed 's/.dicom.zip$/.nii.gz/')"
+	NiftiFile="${TmpDir}/$(basename "$InputFile" | sed 's/.zip$//; s/.dicom//; s/$/.nii.gz/')"
 	unzip -qq -j -d "$DicomDir" "$InputFile" 
 	SeriesID="$(c3d -dicom-series-list "$DicomDir" | tail -n 1 | awk '{print $NF}')"
 
