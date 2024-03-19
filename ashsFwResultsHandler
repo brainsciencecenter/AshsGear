@@ -1,0 +1,228 @@
+#!/bin/bash
+
+
+
+CmdName=$(basename "$0")
+
+Syntax="${CmdName} [-a Atlas][-A AtlasDirectory][-c ConfigJsonFile][-i IdString][-o OutputDir][-l ShiftLeft][-r ShiftRight][-I ShiftIcv][-1 T1NiftiFile][-2 T2NiftiFile][-t T1NiftiFileStandInTrimmed][-w WorkDir][-q QaLocation]"
+
+while getopts a:A:c:i:o:l:r:I:1:2:t:w:q: arg 
+do
+	case "$arg" in
+	       	a|A|c|i|o|l|r|I|1|2|t|w|q)
+			eval "opt_${arg}='${OPTARG:=1}'"
+			;;
+
+	esac
+done
+
+shift $(("$OPTIND" - 1))
+
+Atlas="$opt_a"
+AtlasDirectory="$opt_A"
+ConfigJsonFile="$opt_c"
+IdString="$opt_i"
+OutputDir="$opt_o"
+SHIFT_LEFT="$opt_l"
+SHIFT_RIGHT="$opt_r"
+SHIFT_ICV="$opt_I"
+T1NiftiFile="$opt_1"
+T1NiftiFileStandInTrimmed="$opt_t"
+T2NiftiFile="$opt_2"
+WorkDir="$opt_w"
+
+
+if [ "$T1NiftiFileStandInTrimmed" == "$T2NiftiFileStandInTrimmed" ]
+then
+	T2InputNeeded=0
+else
+	T2InputNeeded=1
+fi
+
+AshsPrefix="$Atlas"
+
+AshsAtlasConfigFile="/app/AshsAtlasesConfig.json"
+AtlasJson=$(jq -r 'select(.Atlas == "'"${Atlas}"'")' "$AshsAtlasConfigFile")
+
+function sys {
+    [ -n "${opt_n}${opt_v}" ] && echo "$@" 1>&2
+    [ -n "$opt_n" ] || "$@"
+}
+
+function uploadQaFile {
+        local ProjectPath="$1"
+        local File="$2"
+
+        local Tags=
+
+        case "$File" in
+                *left*.png)
+                        Tags=ReadyforASHSQC-left
+                        ;;
+
+                *right*.png)
+                        Tags=ReadyforASHSQC-right
+                        ;;
+
+        esac
+
+        sys fwuploadfile -p "$ProjectPath" -t "$Tags" "$File"
+}
+
+
+	SnaplabelsInputTxtFile="${AtlasDirectory}/snap/snaplabels.txt"
+	SnaplabelsOutputTxtFile="${OutputDir}/${IdString}_${Atlas}_snaplabels.txt"
+	ItkSnapFile=${OutputDir}/${IdString}_${Atlas}_results.itksnap
+
+	awk '{ if ( !($1 ~ /^ *[0-9]+$/) || $1 == 0) { print  }  }' "$SnaplabelsInputTxtFile" > "$SnaplabelsOutputTxtFile"
+	awk '{ if ($1 ~ /^ *[0-9]+$/ && $1 > 0) { gsub(/^"/,"\"Left ",$8); printf("%5d %5d %4d %4d       %2d %2d %2d    %s\n",$1 + '"$SHIFT_LEFT"',$2,$3,$4,$5,$6,$7,$8)   }} ' "$SnaplabelsInputTxtFile" >> "$SnaplabelsOutputTxtFile"
+	awk '{ if ($1 ~ /^ *[0-9]+$/ && $1 > 0) { gsub(/^"/,"\"Right ",$8); printf("%5d %5d %4d %4d       %2d %2d %2d    %s\n",$1 + '"$SHIFT_RIGHT"',$2,$3,$4,$5,$6,$7,$8)   }} ' "$SnaplabelsInputTxtFile" >> "$SnaplabelsOutputTxtFile"
+
+	sys ls "$WorkDir"
+
+	#
+	# Older versions had different tags for T1 under ASHS-HarP than the other atlases
+	#
+	#if [ "$Service" == "ASHS-HarP" ]
+	#then
+	#    	T1Tag=T1
+	#else
+	#        T1Tag=T1-MRI
+	#fi
+
+	T1Tag=T1-MRI
+	T2Tag=T2-MRI
+	T1OutputNiftiFile="${OutputDir}/"$(basename "$T1NiftiFileStandInTrimmed")
+	sys cp "$T1NiftiFile" "$OutputDir"
+
+	ITKSnapCmd=( itksnap-wt -layers-add-anat "$T1NiftiFile" -tags-add "$T1Tag" -layers-list -o "$ItkSnapFile" )
+
+	if [ -n "$T2InputNeeded" ]
+	then
+		T2OutputNiftiFile="${OutputDir}/"$(basename "$T2NiftiFile")
+		sys cp "$T2NiftiFile" "$T2OutputNiftiFile"
+
+		ITKSnapCmd=( itksnap-wt -layers-add-anat "$T1NiftiFileStandInTrimmed" -tags-add "$T1Tag" -layers-add-anat "$T2OutputNiftiFile" -tags-add "$T2Tag" -layers-list -o "$ItkSnapFile" )
+	fi
+
+	# Create T1 or T1+T2 MRI result file
+	sys "${ITKSnapCmd[@]}"
+
+	AcquisitionId=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
+	
+	if [ "$Atlas" == "ASHS-HarP" ]
+	then
+
+		LeftHippocampusVolume=$(sys awk '{print $5}' ${WorkDir}/final/${AshsPrefix}_left_bootstrap_corr_nogray_volumes.txt)
+		RightHippocampusVolume=$(sys awk '{print $5}' ${WorkDir}/final/${AshsPrefix}_right_bootstrap_corr_nogray_volumes.txt)
+		sys fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "+={\"LeftHippocampusVolume\": ${LeftHippocampusVolume}, \"RightHippocampusVolume\": ${RightHippocampusVolume} }" "$AcquisitionId"
+
+		for what in heur corr_usegray corr_nogray
+		do
+		    sys c3d														\
+		    		"$WorkDir/final/${AshsPrefix}_left_lfseg_${what}.nii.gz" -shift $SHIFT_LEFT -replace $SHIFT_LEFT 0	\
+				"$WorkDir/final/${AshsPrefix}_right_lfseg_${what}.nii.gz" -shift $SHIFT_RIGHT -replace $SHIFT_RIGHT 0	\
+				-add -type uchar 											\
+				-o "${OutputDir}/${IdString}_${Atlas}_lfseg_${what}.nii.gz"
+		done
+
+	# Add in the next 3 layers
+		sys itksnap-wt -i "$ItkSnapFile" \
+		   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_corr_usegray.nii.gz" -psn "JLF/CL result" \
+		   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_corr_nogray.nii.gz" -psn "JLF/CL-lite result" \
+		   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_heur.nii.gz" -psn "JLF result" \
+		   -labels-clear \
+		   -labels-add "$SnaplabelsInputTxtFile" $SHIFT_LEFT "Left %s" \
+		   -labels-add "$SnaplabelsInputTxtFile" $SHIFT_RIGHT "Right %s" \
+		   -o "$ItkSnapFile"
+
+		ItkSnapIcvFile=${OutputDir}/${IdString}_ASHS-ICV_results.itksnap
+		ItkSnapHarPIcvFile=${OutputDir}/${IdString}_ASHS-HarP-ICV_results.itksnap
+		if [ -e "$ItkSnapIcvFile" ]
+		then
+			sys itksnap-wt -i "$ItkSnapIcvFile" \
+			   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_corr_usegray.nii.gz" -psn "JLF/CL result" \
+			   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_corr_nogray.nii.gz" -psn "JLF/CL-lite result" \
+			   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_heur.nii.gz" -psn "JLF result" \
+			   -labels-add "$SnaplabelsInputTxtFile" $SHIFT_LEFT "Left %s" \
+			   -labels-add "$SnaplabelsInputTxtFile" $SHIFT_RIGHT "Right %s" \
+			   -o "$ItkSnapHarPIcvFile"
+		fi
+
+        fi
+
+	if [ "$Atlas" == "ASHS-ICV" ]
+	then
+		# Add the ICV image to the project
+		c3d														\
+			"$WorkDir/final/${AshsPrefix}_left_lfseg_corr_nogray.nii.gz" -shift $SHIFT_ICV -replace $SHIFT_ICV 0      	\
+    			-type uchar -o "${OutputDir}/${IdString}_${Atlas}_icv.nii.gz"
+
+		ICV=$(c3d "${WorkDir}/final/${AshsPrefix}_left_lfseg_corr_nogray.nii.gz" -dup -lstat | awk '$1 == 1 {print $7}')
+
+		sys fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "+={\"ICV\": ${ICV} }" "$AcquisitionId"
+
+  		sys itksnap-wt -i "$ItkSnapFile" \
+    		   -las "${OutputDir}/${IdString}_${Atlas}_icv.nii.gz" -psn "ICV" \
+		   -labels-clear \
+    		   -labels-add "$SnaplabelsInputTxtFile" "$SHIFT_ICV" "%s" \
+    		   -o "$ItkSnapFile"
+
+		ItkSnapHarPFile=${OutputDir}/${IdString}_ASHS-HarP_results.itksnap
+	 	ItkSnapHarPIcvFile=${OutputDir}/${IdString}_ASHS-HarP-ICV_results.itksnap
+		if [ -e "$ItkSnapHarPFile" ]
+		then
+  			sys itksnap-wt -i "$ItkSnapHarPFile" \
+    			   -las "${OutputDir}/${IdString}_${Atlas}_icv.nii.gz" -psn "ICV" \
+    			   -labels-add "$SnaplabelsInputTxtFile" "$SHIFT_ICV" "%s" \
+    			   -o "$ItkSnapHarPIcvFile"
+		fi
+
+	fi
+
+	sys find "${WorkDir}" -type f
+
+
+	regex=$(echo "$AtlasJson" | jq -r 'if .QaFileRegEx then .QaFileRegEx | @csv else empty end' | sed -r 's/"(.*)"$/(\1)/; s/","/)|(/' )
+	if [ -z "$regex" ]
+	then
+		regex="^$"
+	fi
+
+    	for i in $(find "${WorkDir}" -type f | grep -E "$regex")
+    	do
+    	    BaseName=$(basename "$i" )
+
+	    echo "opt_q = '$opt_q'" 1>&2
+	    echo "BaseName = '$BaseName'" 1>&2
+	    echo "WorkDir = '$WorkDir'" 1>&2
+	    echo "OutputDir = '$OutputDir'" 1>&2
+	    echo "IdString = '$IdString'" 1>&2
+
+    	    OutputFile="${OutputDir}/${IdString}_${Atlas}_${BaseName}"
+
+	    case "$opt_q" in
+	        Analysis|analysis)
+    		    sys cp "$i" "${OutputFile}"
+		    ;;
+
+	        "None"|"null")
+		    true
+		    ;;
+
+		Acquisition|acquisition)
+		    sys cp "$i" "$OutputFile"
+
+		    sys uploadQaFile "$AcquisitionId"  "$OutputFile"
+		    ;;
+
+		*)
+		    sys cp "$i" "$OutputFile"
+
+		    sys uploadQaFile "$opt_q"  "$OutputFile"
+		    ;;
+
+            esac
+	done
+	
+	sys ls -l "$OutputDir"
