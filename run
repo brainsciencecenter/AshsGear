@@ -348,7 +348,7 @@ do
 	#
 	# *** Do we need to worry about ASHS_HOOK_SCRIPT/DATA ?
 	#
-        [ -d "$opt_d" ] || sys "${AshsCmd[@]}"
+	[ -d "$opt_d" ] || sys "${AshsCmd[@]}" || exit "$?"
 
 	AshsPrefix=$(basename "$WorkDir")
 	SnaplabelsInputTxtFile="${AtlasDirectory}/snap/snaplabels.txt"
