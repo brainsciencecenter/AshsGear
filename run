@@ -337,7 +337,7 @@ do
 
 	AtlasDirectory=$(echo "$AtlasJson" | jq -r '.Directory')
 	AshsCmd=(
-	    ashs_main.sh -d -a "$AtlasDirectory"  -g "$T1NiftiFileStandInTrimmed" -f "$T2NiftiFileStandIn"  -w "$WorkDir"  -P
+	    ashs_main.sh -a "$AtlasDirectory"  -g "$T1NiftiFileStandInTrimmed" -f "$T2NiftiFileStandIn"  -w "$WorkDir"  -P
 	)
 
 	GitBranch="master"
