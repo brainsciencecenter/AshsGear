@@ -1,4 +1,4 @@
-#!/bin/bash  -x
+#!/bin/bash  
 
 #
 # All atlases use 
@@ -336,9 +336,8 @@ do
 
 
 	AtlasDirectory=$(echo "$AtlasJson" | jq -r '.Directory')
-	#
 	AshsCmd=(
-	    bash -x ashs_main.sh -d -a "$AtlasDirectory"  -g "$T1NiftiFileStandInTrimmed" -f "$T2NiftiFileStandIn"  -w "$WorkDir"  -P
+	    ashs_main.sh -d -a "$AtlasDirectory"  -g "$T1NiftiFileStandInTrimmed" -f "$T2NiftiFileStandIn"  -w "$WorkDir"  -P
 	)
 
 	GitBranch="master"
