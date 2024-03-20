@@ -12,15 +12,6 @@ LABEL version="fastashs-1.0.0"
 LABEL maintainer="pyushkevich@gmail.com"
 LABEL description="ASHS base image"
 
-#COPY atlases/ASHS-PMC-T1.tgz /app/atlas/data/ASHS-PMC-T1.tgz
-#COPY atlases/ASHS-PMC.tgz /app/atlas/data/ASHS-PMC.tgz
-#COPY atlases/ASHS-ABC-3T.tgz /app/atlas/data/ASHS-ABC-3T.tgz
-#COPY atlases/ASHS-ABC-7T.tgz /app/atlas/data/ASHS-ABC-7T.tgz
-#COPY atlases/ASHS-Magdeburg.tgz /app/atlas/data/ASHS-Magdeburg.tgz
-#COPY atlases/ASHS-HarP.tgz /app/atlas/data/ASHS-HarP.tgz
-#COPY atlases/ASHS-ICV.tgz /app/atlas/data/ASHS-ICV.tgz
-#COPY atlases/ASHS-Princeton.tgz /app/atlas/data/ASHS-Princeton.tgz
-#COPY atlases/ASHS-Utrecht.tgz /app/atlas/data/ASHS-Utrecht.tgz
 
 COPY fw /usr/local/bin/fw
 
@@ -38,7 +29,8 @@ RUN pip3 install flywheel-sdk globre pytz pyjq tzlocal
 # Copy the current scriptlet
 COPY docker-ashs-base /app/
 
-COPY config.json config.test.json manifest.json run runall ${FLYWHEEL}/
+COPY ashsFwResultsHandler config.json config.test.json manifest.json run runall trim_neck.sh ${FLYWHEEL}/
+RUN chmod 755 ashsFwResultsHandler run runall trim_neck.sh
 COPY AshsAtlasesConfig.json /app/AshsAtlasesConfig.json
 COPY testdata ${FLYWHEEL}/testdata
 
