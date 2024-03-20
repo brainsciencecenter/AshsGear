@@ -19,7 +19,7 @@
     },
     "custom": {
         "gear-builder": {
-            "image": "ashs:0.1.40",
+            "image": "ashs:0.1.43",
             "category": "analysis"
         },
         "flywheel": {
@@ -54,12 +54,13 @@
     "config": {
         "ASHS_Atlases": {
             "default": "None",
-            "description": "Segmentation service to use.  May be one of ASHS-Magdeburg, ASHS-PMC-T1, ASHS-PMC-T2, ASHS-Princeton, ASHS-Utrect",
+            "description": "May be one of ASHS-ABC-3T, ASHS-ABC-7T, ASHS-HarP, ASHS-ICV, ASHS-Magdeburg, ASHS-PMC, ASHS-PMC-T1, ASHS-Princeton",
             "enum": [
                 "None",
                 "ASHS-ABC-3T",
                 "ASHS-ABC-7T",
                 "ASHS-HarP",
+                "ASHS-ICV",
                 "ASHS-Magdeburg",
                 "ASHS-PMC",
                 "ASHS-PMC-T1",
@@ -89,5 +90,5 @@
     "source": "",
     "url": "",
     "license": "MIT",
-    "version": "0.1.40"
+    "version": "0.1.43"
 }

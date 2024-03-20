@@ -198,7 +198,8 @@ function uploadQaFile {
 	    echo "OutputDir = '$OutputDir'" 1>&2
 	    echo "IdString = '$IdString'" 1>&2
 
-    	    OutputFile="${OutputDir}/${IdString}_${Atlas}_${BaseName}"
+	    NewBaseName=$(echo "$BaseName" | sed "s/${AshsPrefix}_//")
+    	    OutputFile="${OutputDir}/${IdString}_${Atlas}_${NewBaseName}"
 
 	    case "$opt_q" in
 	        Analysis|analysis)
