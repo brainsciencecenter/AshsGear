@@ -39,7 +39,7 @@ else
 	T2InputNeeded=1
 fi
 
-AshsPrefix="$Atlas"
+AshsPrefix=$(basename "$WorkDir")
 
 AshsAtlasConfigFile="/app/AshsAtlasesConfig.json"
 AtlasJson=$(jq -r 'select(.Atlas == "'"${Atlas}"'")' "$AshsAtlasConfigFile")
@@ -180,8 +180,7 @@ function uploadQaFile {
 
 	fi
 
-	sys find "${WorkDir}" -type f
-
+	#sys find "${WorkDir}" -type f
 
 	regex=$(echo "$AtlasJson" | jq -r 'if .QaFileRegEx then .QaFileRegEx | @csv else empty end' | sed -r 's/"(.*)"$/(\1)/; s/","/)|(/' )
 	if [ -z "$regex" ]
