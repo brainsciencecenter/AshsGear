@@ -48,7 +48,7 @@
 
 CmdName=$(basename "$0")
 
-echo "$@"
+echo "$@" 1>&2
 
 function sys {
     [ -n "${opt_n}${opt_v}" ] && echo "$@" 1>&2
@@ -356,7 +356,7 @@ do
 	SnaplabelsOutputTxtFile="${OutputDir}/${IdString}_${Atlas}_snaplabels.txt"
 	ItkSnapFile=${OutputDir}/${IdString}_${Atlas}_results.itksnap
 
-	bash -x ./ashsFwResultsHandler -a "$Atlas" -A "$AtlasDirectory" -c "$ConfigJsonFile" -i "$IdString" -o "$OutputDir" -l "$SHIFT_LEFT" -r "$SHIFT_RIGHT" -I "$SHIFT_ICV" -1 "$T1NiftiFile" -2 "$T2NiftiFile" -t "$T1NiftiFileStandInTrimmed" -w "$WorkDir" -q "$opt_q" || exit "$?"
+	sys bash -x ./ashsFwResultsHandler -a "$Atlas" -A "$AtlasDirectory" -c "$ConfigJsonFile" -i "$IdString" -o "$OutputDir" -l "$SHIFT_LEFT" -r "$SHIFT_RIGHT" -I "$SHIFT_ICV" -1 "$T1NiftiFile" -2 "$T2NiftiFile" -t "$T1NiftiFileStandInTrimmed" -w "$WorkDir" -q "$opt_q" || exit "$?"
 #
 #	awk '{ if ( !($1 ~ /^ *[0-9]+$/) || $1 == 0) { print  }  }' "$SnaplabelsInputTxtFile" > "$SnaplabelsOutputTxtFile"
 #	awk '{ if ($1 ~ /^ *[0-9]+$/ && $1 > 0) { gsub(/^"/,"\"Left ",$8); printf("%5d %5d %4d %4d       %2d %2d %2d    %s\n",$1 + '"$SHIFT_LEFT"',$2,$3,$4,$5,$6,$7,$8)   }} ' "$SnaplabelsInputTxtFile" >> "$SnaplabelsOutputTxtFile"

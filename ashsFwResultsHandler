@@ -1,8 +1,8 @@
 #!/bin/bash
 
-
-
 CmdName=$(basename "$0")
+
+echo "$0" 1>&2
 
 Syntax="${CmdName} [-a Atlas][-A AtlasDirectory][-c ConfigJsonFile][-i IdString][-o OutputDir][-l ShiftLeft][-r ShiftRight][-I ShiftIcv][-1 T1NiftiFile][-2 T2NiftiFile][-t T1NiftiFileStandInTrimmed][-w WorkDir][-q QaLocation]"
 
@@ -136,8 +136,8 @@ function uploadQaFile {
 		   -labels-add "$SnaplabelsInputTxtFile" $SHIFT_RIGHT "Right %s" \
 		   -o "$ItkSnapFile"
 
-		ItkSnapIcvFile=${OutputDir}/${IdString}_ASHS-ICV_results.itksnap
-		ItkSnapHarPIcvFile=${OutputDir}/${IdString}_ASHS-HarP-ICV_results.itksnap
+		ItkSnapIcvFile="${OutputDir}/${IdString}_ASHS-ICV_results.itksnap"
+		ItkSnapHarPIcvFile="${OutputDir}/${IdString}_ASHS-HarP-ICV_results.itksnap"
 		if [ -e "$ItkSnapIcvFile" ]
 		then
 			sys itksnap-wt -i "$ItkSnapIcvFile" \
@@ -153,7 +153,7 @@ function uploadQaFile {
 		SnaplabelsHarpIcvOutputTxtFile="${OutputDir}/${IdString}_ASHS-HarP-ICV_snaplabels.txt"
 		if [ -f "$SnaplabesIcvOutputTxtFile" ]
 		then
-			awk '{ if ($1 ~ /^ *[0-9]+$/ && $8 ~ /Left/ && $1 > 0) { gsub(/^"/,"\"Left ",$8); printf("%5d %5d %4d %4d       %2d %2d %2d    %s\n",$1 + '"$SHIFT_ICV"',$2,$3,$4,$5,$6,$7,"ICV")   }} ' "$SnaplabelsIcvInputTxtFile" >> "$SnaplabelsHarPIcvOutputTxtFile"
+			sys awk '{ if ($1 ~ /^ *[0-9]+$/ && $8 ~ /Left/ && $1 > 0) { gsub(/^"/,"\"Left ",$8); printf("%5d %5d %4d %4d       %2d %2d %2d    %s\n",$1 + '"$SHIFT_ICV"',$2,$3,$4,$5,$6,$7,"ICV")   }} ' "$SnaplabelsIcvInputTxtFile" >> "$SnaplabelsHarPIcvOutputTxtFile"
 			
 		fi
         fi
@@ -161,7 +161,7 @@ function uploadQaFile {
 	if [ "$Atlas" == "ASHS-ICV" ]
 	then
 		# Add the ICV image to the project
-		c3d														\
+		sys c3d														\
 			"$WorkDir/final/${AshsPrefix}_left_lfseg_corr_nogray.nii.gz" -shift $SHIFT_ICV -replace $SHIFT_ICV 0      	\
     			-type uchar -o "${OutputDir}/${IdString}_${Atlas}_icv.nii.gz"
 
@@ -175,8 +175,8 @@ function uploadQaFile {
     		   -labels-add "$SnaplabelsInputTxtFile" "$SHIFT_ICV" "%s" \
     		   -o "$ItkSnapFile"
 
-		ItkSnapHarPFile=${OutputDir}/${IdString}_ASHS-HarP_results.itksnap
-	 	ItkSnapHarPIcvFile=${OutputDir}/${IdString}_ASHS-HarP-ICV_results.itksnap
+		ItkSnapHarPFile="${OutputDir}/${IdString}_ASHS-HarP_results.itksnap"
+	 	ItkSnapHarPIcvFile="${OutputDir}/${IdString}_ASHS-HarP-ICV_results.itksnap"
 		if [ -e "$ItkSnapHarPFile" ]
 		then
   			sys itksnap-wt -i "$ItkSnapHarPFile" \
@@ -187,10 +187,9 @@ function uploadQaFile {
 
 		SnaplabelsHarPOutputTxtFile="${OutputDir}/${IdString}_ASHS-HarP_snaplabels.txt"
 		SnaplabelsHarpIcvOutputTxtFile="${OutputDir}/${IdString}_ASHS-HarP-ICV_snaplabels.txt"
-		if [ -f "$SnaplabesHarPOutputTxtFile" ]
+		if [ -e "$SnaplabelsHarPOutputTxtFile" ]
 		then
-			awk '{ if ($1 ~ /^ *[0-9]+$/ && $1 > 0) { print $0 } }' "$SnaplabelsHarPInputTxtFile" >> "$SnaplabelsHarPIcvOutputTxtFile"
-			
+			sys awk '{ if ($1 ~ /^ *[0-9]+$/ && $1 > 0) { print $0 } }' "$SnaplabelsHarPOutputTxtFile" >> "$SnaplabelsHarpIcvOutputTxtFile"
 		fi
 	fi
 
