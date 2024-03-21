@@ -149,6 +149,13 @@ function uploadQaFile {
 			   -o "$ItkSnapHarPIcvFile"
 		fi
 
+		SnaplabelsIcvOutputTxtFile="${OutputDir}/${IdString}_ASHS-ICV_snaplabels.txt"
+		SnaplabelsHarpIcvOutputTxtFile="${OutputDir}/${IdString}_ASHS-HarP-ICV_snaplabels.txt"
+		if [ -f "$SnaplabesIcvOutputTxtFile" ]
+		then
+			awk '{ if ($1 ~ /^ *[0-9]+$/ && $8 ~ /Left/ && $1 > 0) { gsub(/^"/,"\"Left ",$8); printf("%5d %5d %4d %4d       %2d %2d %2d    %s\n",$1 + '"$SHIFT_ICV"',$2,$3,$4,$5,$6,$7,"ICV")   }} ' "$SnaplabelsIcvInputTxtFile" >> "$SnaplabelsHarPIcvOutputTxtFile"
+			
+		fi
         fi
 
 	if [ "$Atlas" == "ASHS-ICV" ]
@@ -178,6 +185,13 @@ function uploadQaFile {
     			   -o "$ItkSnapHarPIcvFile"
 		fi
 
+		SnaplabelsHarPOutputTxtFile="${OutputDir}/${IdString}_ASHS-HarP_snaplabels.txt"
+		SnaplabelsHarpIcvOutputTxtFile="${OutputDir}/${IdString}_ASHS-HarP-ICV_snaplabels.txt"
+		if [ -f "$SnaplabesHarPOutputTxtFile" ]
+		then
+			awk '{ if ($1 ~ /^ *[0-9]+$/ && $1 > 0) { print $0 } }' "$SnaplabelsHarPInputTxtFile" >> "$SnaplabelsHarPIcvOutputTxtFile"
+			
+		fi
 	fi
 
 	#sys find "${WorkDir}" -type f
