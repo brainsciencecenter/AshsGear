@@ -52,23 +52,22 @@ function sys {
 function uploadQaFile {
         local ProjectPath="$1"
         local File="$2"
+	local Tags=( $(echo "$3" | sed 's/,/ /g') )
 
-        local Tags=
 
         case "$File" in
                 *left*.png)
-                        Tags=ReadyforASHSQC-left
+			Tags+=(ReadyforASHSQC-left)
                         ;;
 
                 *right*.png)
-                        Tags=ReadyforASHSQC-right
+			Tags+=(ReadyforASHSQC-right)
                         ;;
 
         esac
 
-        sys fwuploadfile -p "$ProjectPath" -t "$Tags" "$File"
+	sys fwuploadfile -p "$ProjectPath" -t "$(echo ${Tags[@]} | sed 's/  */,/g')" "$File"
 }
-
 
 	SnaplabelsInputTxtFile="${AtlasDirectory}/snap/snaplabels.txt"
 	SnaplabelsOutputTxtFile="${OutputDir}/${IdString}_${Atlas}_snaplabels.txt"
@@ -226,13 +225,13 @@ function uploadQaFile {
 		Acquisition|acquisition)
 		    sys cp "$i" "$OutputFile"
 
-		    sys uploadQaFile "$AcquisitionId"  "$OutputFile"
+		    sys uploadQaFile "$AcquisitionId"  "$OutputFile" "$Atlas"
 		    ;;
 
 		*)
 		    sys cp "$i" "$OutputFile"
 
-		    sys uploadQaFile "$opt_q"  "$OutputFile"
+		    sys uploadQaFile "$opt_q"  "$OutputFile" "$Atlas"
 		    ;;
 
             esac
