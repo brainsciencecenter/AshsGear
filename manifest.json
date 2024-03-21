@@ -19,7 +19,7 @@
     },
     "custom": {
         "gear-builder": {
-            "image": "ashs:0.1.43",
+            "image": "ashs:0.1.45",
             "category": "analysis"
         },
         "flywheel": {
@@ -90,5 +90,5 @@
     "source": "",
     "url": "",
     "license": "MIT",
-    "version": "0.1.43"
+    "version": "0.1.45"
 }

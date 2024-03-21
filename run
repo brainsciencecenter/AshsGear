@@ -48,6 +48,8 @@
 
 CmdName=$(basename "$0")
 
+echo "$@"
+
 function sys {
     [ -n "${opt_n}${opt_v}" ] && echo "$@" 1>&2
     [ -n "$opt_n" ] || "$@"
@@ -206,16 +208,6 @@ then
 	fi
 fi
 
-if [ -n "$opt_w" ]
-then
-    WorkDir=$opt_w
-    [ -d "$WorkDir" ] || sys mkdir "$opt_w"
-else
-    WorkDir=$(sys mktemp -d /tmp/ashs-XXXXXX)
-fi
-[ -d "$WorkDir" ] || mkdir "$WorkDir"
-TmpDir="$WorkDir"
-
 #
 # Find the atlas list
 #   Config file
@@ -240,7 +232,7 @@ then
     Atlases=( $(jq -r '.Atlas' "$AshsAtlasConfigFile" | sort ) )
 elif [ -n "$1" ]
 then
-    Atlases=( "$1" )
+    Atlases=( "$@" )
 fi
 
 #
@@ -261,6 +253,16 @@ for Atlas in "${Atlases[@]}"
 do
 	unset T1Input
 	unset T2Input
+
+	if [ -n "$opt_w" ]
+	then
+	    WorkDir=$opt_w
+	    [ -d "$WorkDir" ] || sys mkdir "$opt_w"
+	else
+	    WorkDir=$(sys mktemp -d "/tmp/${Atlas}-wd-XXXXXX" )
+	fi
+	[ -d "$WorkDir" ] || mkdir "$WorkDir"
+	TmpDir="$WorkDir"
 
         AtlasJson=$(installAshsAtlas "$Atlas")
         if [ -z "$AtlasJson" ]
