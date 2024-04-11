@@ -297,6 +297,8 @@ do
 	aspect_ratio_min=$(python -c "print( float($smin)/float($smax))")
 	aspect_ratio_max=$(python -c "print( float($smax)/float($smin))")
 
+	echo "sx = '$sx', sy = '$sy', sz = '$sz', smin = '$smin', smax = '$smax', aspect_ratio_min = '$aspect_ratio_min', aspect_ratio_max = '$aspect_ratio_max'" 
+
 	T1NiftiFileStandInTrimmed=$(echo "${T1NiftiFileStandIn}" | sed 's/.nii.gz/-trimmmed&/')
 	if (( $width > 40 )) && (( $height > 40 )) ; then
         	if [[ $(echo "$aspect_ratio_max < 3" | bc) == 1 ]] && [[ $(echo "$aspect_ratio_min > 0.33" | bc) == 1 ]] ; then
