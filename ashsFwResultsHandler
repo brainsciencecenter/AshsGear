@@ -4,12 +4,12 @@ CmdName=$(basename "$0")
 
 echo "$0" 1>&2
 
-Syntax="${CmdName} [-a Atlas][-A AtlasDirectory][-c ConfigJsonFile][-i IdString][-o OutputDir][-l ShiftLeft][-r ShiftRight][-I ShiftIcv][-1 T1NiftiFile][-2 T2NiftiFile][-t T1NiftiFileStandInTrimmed][-w WorkDir][-q QaLocation]"
+Syntax="${CmdName} [-a Atlas][-A AtlasDirectory][-c ConfigJsonFile][-i IdString][-o OutputDir][-l ShiftLeft][-r ShiftRight][-I ShiftIcv][-1 T1NiftiFile][-2 T2NiftiFile][-t T1NiftiFileTrimmed][-v][-w WorkDir][-q QaLocation]"
 
-while getopts a:A:c:i:o:l:r:I:1:2:t:w:q: arg 
+while getopts a:A:c:i:o:l:r:I:1:2:t:w:vq: arg 
 do
 	case "$arg" in
-	       	a|A|c|i|o|l|r|I|1|2|t|w|q)
+	       	a|A|c|i|o|l|r|I|1|2|t|w|v|q)
 			eval "opt_${arg}='${OPTARG:=1}'"
 			;;
 
@@ -27,14 +27,14 @@ SHIFT_LEFT="$opt_l"
 SHIFT_RIGHT="$opt_r"
 SHIFT_ICV="$opt_I"
 T1NiftiFile="$opt_1"
-T1NiftiFileStandInTrimmed="$opt_t"
+T1NiftiFileTrimmed="$opt_t"
 T2NiftiFile="$opt_2"
 WorkDir="$opt_w"
 
 
-if [ "$T1NiftiFileStandInTrimmed" == "$T2NiftiFileStandInTrimmed" ]
+if [ "$T1NiftiFile" == "$T2NiftiFile" ]
 then
-	T2InputNeeded=0
+	T2InputNeeded=
 else
 	T2InputNeeded=1
 fi
@@ -45,7 +45,7 @@ AshsAtlasConfigFile="/app/AshsAtlasesConfig.json"
 AtlasJson=$(jq -r 'select(.Atlas == "'"${Atlas}"'")' "$AshsAtlasConfigFile")
 
 function sys {
-    [ -n "${opt_n}${opt_v}" ] && echo "$@" 1>&2
+    [ -n "${opt_n}${opt_v}" ] && echo "$(date): $@" 1>&2
     [ -n "$opt_n" ] || "$@"
 }
 
@@ -72,11 +72,6 @@ function uploadQaFile {
 	ItkSnapFile=${OutputDir}/${IdString}_${Atlas}_results.itksnap
 
 	SnaplabelsInputTxtFile="${AtlasDirectory}/snap/snaplabels.txt"
-	#SnaplabelsOutputTxtFile="${OutputDir}/${IdString}_${Atlas}_snaplabels.txt"
-
-	#awk '{ if ( !($1 ~ /^ *[0-9]+$/) || $1 == 0) { print  }  }' "$SnaplabelsInputTxtFile" > "$SnaplabelsOutputTxtFile"
-	#awk '{ if ($1 ~ /^ *[0-9]+$/ && $1 > 0) { gsub(/^"/,"\"Left ",$8); printf("%5d %5d %4d %4d       %2d %2d %2d    %s\n",$1 + '"$SHIFT_LEFT"',$2,$3,$4,$5,$6,$7,$8)   }} ' "$SnaplabelsInputTxtFile" >> "$SnaplabelsOutputTxtFile"
-	#awk '{ if ($1 ~ /^ *[0-9]+$/ && $1 > 0) { gsub(/^"/,"\"Right ",$8); printf("%5d %5d %4d %4d       %2d %2d %2d    %s\n",$1 + '"$SHIFT_RIGHT"',$2,$3,$4,$5,$6,$7,$8)   }} ' "$SnaplabelsInputTxtFile" >> "$SnaplabelsOutputTxtFile"
 
 	sys ls "$WorkDir"
 
@@ -92,17 +87,20 @@ function uploadQaFile {
 
 	T1Tag=T1-MRI
 	T2Tag=T2-MRI
-	T1OutputNiftiFile="${OutputDir}/"$(basename "$T1NiftiFileStandInTrimmed")
-	sys cp "$T1NiftiFile" "$OutputDir"
+	T1OutputNiftiFile="${OutputDir}/"$(basename "$T1NiftiFileTrimmed")
+	sys cp "$T1NiftiFileTrimmed" "$T1OutputNiftiFile"
 
-	ITKSnapCmd=( itksnap-wt -layers-add-anat "$T1NiftiFile" -tags-add "$T1Tag" -layers-list -o "$ItkSnapFile" )
+	sys c3d "$T1OutputNiftiFile" -info
+
+	ITKSnapCmd=( itksnap-wt -layers-add-anat "$T1OutputNiftiFile" -tags-add "$T1Tag" -layers-list -o "$ItkSnapFile" )
 
 	if [ -n "$T2InputNeeded" ]
 	then
 		T2OutputNiftiFile="${OutputDir}/"$(basename "$T2NiftiFile")
-		sys cp "$T2NiftiFile" "$T2OutputNiftiFile"
+		# ***
+		sys echo cp "$T2NiftiFile" "$T2OutputNiftiFile"
 
-		ITKSnapCmd=( itksnap-wt -layers-add-anat "$T1NiftiFileStandInTrimmed" -tags-add "$T1Tag" -layers-add-anat "$T2OutputNiftiFile" -tags-add "$T2Tag" -layers-list -o "$ItkSnapFile" )
+		ITKSnapCmd=( itksnap-wt -layers-add-anat "$T1OutputNiftiFile" -tags-add "$T1Tag" -layers-add-anat "$T2OutputNiftiFile" -tags-add "$T2Tag" -layers-list -o "$ItkSnapFile" )
 	fi
 
 	# Create T1 or T1+T2 MRI result file
@@ -124,6 +122,8 @@ function uploadQaFile {
 				"$WorkDir/final/${AshsPrefix}_right_lfseg_${what}.nii.gz" -shift $SHIFT_RIGHT -replace $SHIFT_RIGHT 0	\
 				-add -type uchar 											\
 				-o "${OutputDir}/${IdString}_${Atlas}_lfseg_${what}.nii.gz"
+
+		    sys c3d "${OutputDir}/${IdString}_${Atlas}_lfseg_${what}.nii.gz" -info
 		done
 
 	# Add in the next 3 layers
@@ -149,12 +149,6 @@ function uploadQaFile {
 			   -o "$ItkSnapHarPIcvFile"
 		fi
 
-		#SnaplabelsIcvOutputTxtFile="${OutputDir}/${IdString}_ASHS-ICV_snaplabels.txt"
-		#SnaplabelsHarpIcvOutputTxtFile="${OutputDir}/${IdString}_ASHS-HarP-ICV_snaplabels.txt"
-		#if [ -f "$SnaplabesIcvOutputTxtFile" ]
-		#then
-		#	sys awk '{ if ($1 ~ /^ *[0-9]+$/ && $8 ~ /Left/ && $1 > 0) { gsub(/^"/,"\"Left ",$8); printf("%5d %5d %4d %4d       %2d %2d %2d    %s\n",$1 + '"$SHIFT_ICV"',$2,$3,$4,$5,$6,$7,"ICV")   }} ' "$SnaplabelsIcvInputTxtFile" >> "$SnaplabelsHarPIcvOutputTxtFile"
-		#fi
         fi
 
 	if [ "$Atlas" == "ASHS-ICV" ]
@@ -163,6 +157,8 @@ function uploadQaFile {
 		sys c3d														\
 			"$WorkDir/final/${AshsPrefix}_left_lfseg_corr_nogray.nii.gz" -shift $SHIFT_ICV -replace $SHIFT_ICV 0      	\
     			-type uchar -o "${OutputDir}/${IdString}_${Atlas}_icv.nii.gz"
+
+		sys c3d "${OutputDir}/${IdString}_${Atlas}_icv.nii.gz" -info
 
 		ICV=$(c3d "${WorkDir}/final/${AshsPrefix}_left_lfseg_corr_nogray.nii.gz" -dup -lstat | awk '$1 == 1 {print $7}')
 
@@ -183,24 +179,15 @@ function uploadQaFile {
     			   -labels-add "$SnaplabelsInputTxtFile" "$SHIFT_ICV" "%s" \
     			   -o "$ItkSnapHarPIcvFile"
 		fi
-
-		#SnaplabelsHarPOutputTxtFile="${OutputDir}/${IdString}_ASHS-HarP_snaplabels.txt"
-		#SnaplabelsHarpIcvOutputTxtFile="${OutputDir}/${IdString}_ASHS-HarP-ICV_snaplabels.txt"
-		#if [ -e "$SnaplabelsHarPOutputTxtFile" ]
-		#then
-		#	sys cp "$SnaplabelsHarPOutputTxtFile" "$SnaplabelsHarpIcvOutputTxtFile"
-
-		#	sys awk '{ if ($1 ~ /^ *[0-9]+$/ && $1 > 0) { gsub(/^"/,"\"Left ","ICV" ); printf("%5d %5d %4d %4d       %2d %2d %2d    %s\n",$1 + '"$SHIFT_ICV"',$2,$3,$4,$5,$6,$7,$8)   }} ' "$SnaplabelsInputTxtFile" >> "$SnaplabelsHarpIcvOutputTxtFile"
-		#fi
 	fi
-
-	#sys find "${WorkDir}" -type f
 
 	regex=$(echo "$AtlasJson" | jq -r 'if .QaFileRegEx then .QaFileRegEx | @csv else empty end' | sed -r 's/"(.*)"$/(\1)/; s/","/)|(/' )
 	if [ -z "$regex" ]
 	then
 		regex="^$"
 	fi
+
+	[ -n "$opt_v" ] && find "${WorkDir}" -type f | grep -E "$regex"
 
     	for i in $(find "${WorkDir}" -type f | grep -E "$regex")
     	do
@@ -213,7 +200,7 @@ function uploadQaFile {
 	    echo "IdString = '$IdString'" 1>&2
 
 	    NewBaseName=$(echo "$BaseName" | sed "s/${AshsPrefix}_//")
-    	    OutputFile="${OutputDir}/${IdString}_${Atlas}_${NewBaseName}"
+	    OutputFile=$(echo "${OutputDir}/${IdString}_${Atlas}_${NewBaseName}" | sed 's/ICV_qa_seg_multiatlas_corr_nogray_left_qa/ICV_icv_qc/')
 
 	    case "$opt_q" in
 	        Analysis|analysis)
@@ -238,5 +225,7 @@ function uploadQaFile {
 
             esac
 	done
+
+	fwget -1 "$AcquisitionId" | jq -r '.info.PICSL_sMRI_biomarkers' > "${OutputDir}/PICSL_sMRI_biomarkers.json"
 	
 	sys ls -l "$OutputDir"
