@@ -90,54 +90,6 @@ function installAshsAtlas {
     echo "$AtlasJson"
 }
 
-function niftiIfNeeded {
-    local InputFile="$1"
-    local NiftiFile
-    
-    # Convert to nifi if needed
-    if echo "$InputFile" | grep -q ".nii.gz$"
-    then
-	NiftiFile="$InputFile"
-    elif file "$InputFile" | grep -q "Zip archive data"
-    then
-	DicomDir=$(mktemp -d "${TmpDir}/DicomDir-XXXXXXX")
-	[ -d "$DicomDir" ] || mkdir -p "$DicomDir"
-
-	NiftiFile="${TmpDir}/$(basename "$InputFile" | sed 's/.zip$//; s/.dicom//; s/$/.nii.gz/')"
-	sys unzip -qq -j -d "$DicomDir" "$InputFile" 
-	SeriesID="$(sys c3d -dicom-series-list "$DicomDir" | tail -n 1 | awk '{print $NF}')"
-
-	# -dicom takes two arguments so  -o follows 
-	sys c3d -dicom-series-read "$DicomDir" "$SeriesID" -o "$NiftiFile" 
-	rm -rf "$DicomDir"
-    else
-	echo "$cmd : Unrecognized input type '$InputFile'" 1>&2
-	exit 1
-    fi
-
-    realpath "$NiftiFile"
-}
-
-function uploadQaFile {
-	local ProjectPath="$1"
-	local File="$2"
-
-	local Tags=
-
-	case "$File" in
-		*left*.png)
-			Tags=ReadyforASHSQC-left
-			;;
-
-		*right*.png)
-			Tags=ReadyforASHSQC-right
-			;;
-
-	esac
-
-	sys fwuploadfile -p "$ProjectPath" -t "$Tags" "$File"
-}
-
 sys apt install -y wget jq git time 
 export ASHS_ROOT=/app/ashs
 export PATH="${ASHS_ROOT}/bin":$PATH
@@ -182,7 +134,7 @@ done
 shift $(($OPTIND - 1))
 
 sys git clone 'https://github.com/brainsciencecenter/flywheel.git'
-export PATH=${FLYWHEEL}/flywheel/bin:$PATH
+export PATH=${FLYWHEEL}:${FLYWHEEL}/flywheel/bin:$PATH
 export PYTHONPATH=${FLYWHEEL}/flywheel/lib:$PYTHONPATH
 
 sys sed -i 's,| bc,| /usr/bin/bc,' /app/ashs/bin/ashs_grid.sh
@@ -196,6 +148,7 @@ jq -r . "$ConfigJsonFile"
 
 T1InputId=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
 ProjectId=$(fwget -1 "$T1InputId" | jq -r .parents.project)
+
 if [ -z "$ProjectId" ]
 then
 	echo "${CmdName} : Could not get parent project id for '${T1InputId}'" 1>&2
@@ -224,16 +177,36 @@ fi
 if [ -e "$ConfigJsonFile" ]
 then
 	T1Input=$(jq -r '.inputs.T1w.location.path' "$ConfigJsonFile" | grep -v null)
+        T1FileId=$(jq -r '.inputs.T1w.object.file_id' "$ConfigJsonFile" | grep -v null)
+        T2Input=$(jq -r '.inputs.T2w.location.path' "$ConfigJsonFile" | grep -v null)
 	Atlases=( $(jq -r '.config.ASHS_Atlases' "$ConfigJsonFile" | grep -v null | grep -v None) )
 fi
 
+[ -n "$opt_1" ] && T1Input="$opt_1"
 
+if [ -z "$T1Input" ] || [ ! -e "$T1Input" ]
+then
+     echo "$CmdName : reqiured argument T1 missing. No -1 argument and not found in config.json" 1>&2
+     echo "$syntax" 1>&2
+     exit 3
+fi
+
+[ -z "$T2Input" ] && T2Input="$T1Input"
+[ -n "$opt_2" ] && T2Input="$opt_2"
+
+{
+	read T1NiftiFile
+	read T2NiftiFile
+	read T1NiftiFileTrimmed
+	read T1NiftiFileTrimmedSanitized
+	read T2NiftiFileSanitized
+} < <(sys ashsPrepT1T2Inputs $opt_n $opt_v -1 "$T1Input" -2 "$T2Input" )
+	
 if [ -z "$Atlases" ]
 then
 	Atlases=( $(sys fwget -1 "$ProjectId" | jq -r '.info.AshsSettings.DefaultAtlas' | sed 's/, */ /g') )
 fi
 
-#
 if [ -n "$1" ] && [ "$1" == "all" ]
 then
     Atlases=( $(jq -r '.Atlas' "$AshsAtlasConfigFile" | sort ) )
@@ -255,23 +228,22 @@ then
     jq -r '.Atlas' "$AshsAtlasConfigFile" 1>&2
 fi
 
-AnalysisId=$(jq -r '.destination.id' "$ConfigJsonFile" )
+AnalysisId=$(jq -r '.destina.id' "$ConfigJsonFile" )
 sys fwUpdate --update-fields "label=Ashs Gear Atlases = '${Atlases[*]}' on: $(date)" "$AnalysisId"
+
+
+IdString=$(basename "$T1NiftiFile" | sed -r 's/.gz$//; s/.zip$//; s/(.nii|.nifti|.dicom|.dcm)$//')
+
 
 for Atlas in "${Atlases[@]}"
 do
-	unset T1Input
-	unset T2Input
-
 	if [ -n "$opt_w" ]
 	then
-	    WorkDir=$opt_w
-	    [ -d "$WorkDir" ] || sys mkdir "$opt_w"
+	    TmpDir=$opt_w
+	    [ -d "$TmpDir" ] || sys mkdir "$opt_w"
 	else
-	    WorkDir=$(sys mktemp -d "/tmp/${Atlas}-wd-XXXXXX" )
+	    TmpDir=$(sys mktemp -d "/tmp/${Atlas}-wd-XXXXXX" )
 	fi
-	[ -d "$WorkDir" ] || sys mkdir "$WorkDir"
-	TmpDir="$WorkDir"
 
         AtlasJson=$(installAshsAtlas "$Atlas")
         if [ -z "$AtlasJson" ]
@@ -279,86 +251,9 @@ do
 	    exit 1
 	fi
 	
-	[ -e "$ConfigJsonFile" ] && T1Input=$(jq -r '.inputs.T1w.location.path' "$ConfigJsonFile" | grep -v null)
-	[ -e "$ConfigJsonFile" ] && T1FileId=$(jq -r '.inputs.T1w.object.file_id' "$ConfigJsonFile" | grep -v null)
-
-	[ -n "$opt_1" ] && T1Input="$opt_1"
-
-	[ -n "$opt_t" ] && [ -z "$T1Input" ] && T1Input=$(echo "$AtlasJson" | jq -r .Inputs.T1) 
-	if [ -z "$T1Input" ] || [ ! -e "$T1Input" ]
-	then
-	    echo "$CmdName : reqiured argument T1 missing. No -1 argument and not found in config.json" 1>&2
-	    echo "$syntax" 1>&2
-	    continue
-	fi
-
-	echo $(fwget -f -1 "$T1FileId"  | jq -r '.parents | .group, .project, .subject, .session, .acquisition'  | (read Group; echo $Group; fwget -1 | jq -r .label)) | sed 's, ,/,g'
-
-	T1NiftiFile=$(niftiIfNeeded "$T1Input")
-
-	sys c3d "$T1NiftiFile" -info
-
-	IdString=$(basename "$T1NiftiFile" | sed -r 's/.gz$//; s/.zip$//; s/(.nii|.nifti|.dicom|.dcm)$//')
-
-	width=$(sys c3d "$T1NiftiFile" -info-full | grep "Image Dimensions" | awk '{print $4}' | sed 's/[[,]//g')
-	height=$(sys c3d "$T1NiftiFile" -info-full | grep "Image Dimensions" | awk '{print $5}' | sed 's/[[,]//g')
-	sx=$(sys c3d "$T1NiftiFile" -info-full | grep "Voxel Spacing" | awk '{print $4}' | sed 's/[][,]//g')
-	sy=$(sys c3d "$T1NiftiFile" -info-full | grep "Voxel Spacing" | awk '{print $5}' | sed 's/[][,]//g')
-	sz=$(c3d "$T1NiftiFile" -info-full | grep "Voxel Spacing" | awk '{print $6}' | sed 's/[][,]//g')
-	smax=$(python -c "print(max([$sx,$sy,$sz]))")
-	smin=$(python -c "print(min([$sx,$sy,$sz]))")
-	aspect_ratio_min=$(python -c "print( float($smin)/float($smax))")
-	aspect_ratio_max=$(python -c "print( float($smax)/float($smin))")
-
-	echo "sx = '$sx', sy = '$sy', sz = '$sz', smin = '$smin', smax = '$smax', aspect_ratio_min = '$aspect_ratio_min', aspect_ratio_max = '$aspect_ratio_max'" 
-
-	T1NiftiFileTrimmed=$(echo "${T1NiftiFile}" | sed 's/.nii.gz/-trimmmed&/')
-	if (( $width > 40 )) && (( $height > 40 )) ; then
-        	if [[ $(echo "$aspect_ratio_max < 3" | bc) == 1 ]] && [[ $(echo "$aspect_ratio_min > 0.33" | bc) == 1 ]] ; then
-                	trim_script=./trim_neck.sh
-                	MASKDIR="$TMPDIR"/mask
-                	INTERDIR="$TMPDIR"/inter
-                	if [ ! -d "$MASKDIR" ] ; then mkdir -p "$MASKDIR" ; fi
-                	if [ ! -d "$INTERDIR" ] ; then mkdir -p "$INTERDIR" ; fi
-                	"$trim_script" -m "$MASKDIR" -w "$INTERDIR" "$T1NiftiFile" "$T1NiftiFileTrimmed" || exit "$?"
-        	else
-                	echo "Wrong scan input: the aspect ratio of the image is < 0.33 or > 3."
-                	exit 1
-        	fi
-	else
-        	echo "Wrong scan input: the width or/and the height of image is inferior to 40."
-        	exit 1
-	fi
-
-	T1SanitizedNiftiFileTrimmed=$(mktemp /tmp/T1-XXXXXXXXXX.nii.gz)
-	cp "$T1NiftiFileTrimmed" "$T1SanitizedNiftiFileTrimmed"
-
-	T2Input="$T1Input"
-	Inputs=$(echo "$AtlasJson" | jq -r '.Inputs | keys | @csv' | sed 's/"//g')
-	if echo "$Inputs" | grep -q T2
-	then
-	    T2InputNeeded=1
-	    [ -e "$ConfigJsonFile" ] && T2Input=$(jq -r '.inputs.T2w.location.path' "$ConfigJsonFile" | grep -v null)
-	    [ -n "$opt_2" ] && T2Input="$opt_2"
-	    [ -n "$opt_t" ] && [ -z "$T2Input" ] && T2Input=$(echo "$AtlasJson" | jq -r .Inputs.T2)
-
-	fi
-
-	T2NiftiFile=$(niftiIfNeeded "$T2Input")
-
-	if [ "$T1NiftiFile" == "$T2NiftiFile" ] 
-	then
-		T2SanitizedNiftiFile="$T1SanitizedNiftiFileTrimmed"
-	else
-		T2SanitizedNiftiFile=$(mktemp /tmp/T2-XXXXXXXXXX.nii.gz)
-		cp "$T2NiftiFile" "$T2SanitizedNiftiFile"
-	fi
-
-	sys c3d "$T1SanitizedNiftiFileTrimmed" -info
-
 	AtlasDirectory=$(echo "$AtlasJson" | jq -r '.Directory')
 	AshsCmd=(
-	    ashs_main.sh -a "$AtlasDirectory"  -g "$T1SanitizedNiftiFileTrimmed" -f "$T2SanitizedNiftiFile"  -w "$WorkDir"  -P
+	    ashs_main.sh -a "$AtlasDirectory"  -g "$T1NiftiFileTrimmedSanitized" -f "$T2NiftiFileSanitized"  -w "$TmpDir"  -P
 	)
 
 	GitBranch="master"
@@ -370,12 +265,12 @@ do
 	#
 	[ -d "$opt_d" ] || sys "${AshsCmd[@]}" || exit "$?"
 
-	AshsPrefix=$(basename "$WorkDir")
+	AshsPrefix=$(basename "$TmpDir")
 	SnaplabelsInputTxtFile="${AtlasDirectory}/snap/snaplabels.txt"
 	SnaplabelsOutputTxtFile="${OutputDir}/${IdString}_${Atlas}_snaplabels.txt"
 	ItkSnapFile=${OutputDir}/${IdString}_${Atlas}_results.itksnap
 
-	sys bash -x ./ashsFwResultsHandler $opt_v -a "$Atlas" -A "$AtlasDirectory" -c "$ConfigJsonFile" -i "$IdString" -o "$OutputDir" -l "$SHIFT_LEFT" -r "$SHIFT_RIGHT" -I "$SHIFT_ICV" -1 "$T1NiftiFile" -2 "$T2NiftiFile" -t "$T1NiftiFileTrimmed" -w "$WorkDir" -q "$opt_q" || exit "$?"
+	sys bash -x ./ashsFwResultsHandler $opt_v -a "$Atlas" -A "$AtlasDirectory" -c "$ConfigJsonFile" -i "$IdString" -o "$OutputDir" -l "$SHIFT_LEFT" -r "$SHIFT_RIGHT" -I "$SHIFT_ICV" -1 "$T1NiftiFile" -2 "$T2NiftiFile" -t "$T1NiftiFileTrimmed" -w "$TmpDir" -q "$opt_q" || exit "$?"
 
 done
 

@@ -97,8 +97,7 @@ function uploadQaFile {
 	if [ -n "$T2InputNeeded" ]
 	then
 		T2OutputNiftiFile="${OutputDir}/"$(basename "$T2NiftiFile")
-		# ***
-		sys echo cp "$T2NiftiFile" "$T2OutputNiftiFile"
+		sys cp "$T2NiftiFile" "$T2OutputNiftiFile"
 
 		ITKSnapCmd=( itksnap-wt -layers-add-anat "$T1OutputNiftiFile" -tags-add "$T1Tag" -layers-add-anat "$T2OutputNiftiFile" -tags-add "$T2Tag" -layers-list -o "$ItkSnapFile" )
 	fi
@@ -107,6 +106,9 @@ function uploadQaFile {
 	sys "${ITKSnapCmd[@]}"
 
 	AcquisitionId=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
+	JobId=$(jq -r '.job.id' "$ConfigJsonFile")
+	JobUrl="https://upenn.flywheel.io/#/jobs/${JobId}"
+	DateTime=$(date)
 	
 	if [ "$Atlas" == "ASHS-HarP" ]
 	then
@@ -114,7 +116,10 @@ function uploadQaFile {
 		LeftHippocampusVolume=$(sys awk '{print $5}' ${WorkDir}/final/${AshsPrefix}_left_bootstrap_corr_nogray_volumes.txt)
 		RightHippocampusVolume=$(sys awk '{print $5}' ${WorkDir}/final/${AshsPrefix}_right_bootstrap_corr_nogray_volumes.txt)
 		sys fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "+={\"LeftHippocampusVolume\": ${LeftHippocampusVolume}, \"RightHippocampusVolume\": ${RightHippocampusVolume} }" "$AcquisitionId"
+	fi
 
+	if [ "$Atlas" != "ASHS-ICV" ]
+	then
 		for what in heur corr_usegray corr_nogray
 		do
 		    sys c3d														\
@@ -155,7 +160,7 @@ function uploadQaFile {
 	then
 		# Add the ICV image to the project
 		sys c3d														\
-			"$WorkDir/final/${AshsPrefix}_left_lfseg_corr_nogray.nii.gz" -shift $SHIFT_ICV -replace $SHIFT_ICV 0      	\
+			"$WorkDir/final/${AshsPrefix}_left_lfseg_corr_nogray.nii.gz" -shift $SHIFT_ICV -replace $SHIFT_ICV 0     \
     			-type uchar -o "${OutputDir}/${IdString}_${Atlas}_icv.nii.gz"
 
 		sys c3d "${OutputDir}/${IdString}_${Atlas}_icv.nii.gz" -info
@@ -226,6 +231,13 @@ function uploadQaFile {
             esac
 	done
 
+	sys fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "+={ \"JobId\": \"${JobId}\", \"DateTime\": \"${DateTime}\", \"JobUrl\": \"${JobUrl}\" }" "$AcquisitionId"
+
 	fwget -1 "$AcquisitionId" | jq -r '.info.PICSL_sMRI_biomarkers' > "${OutputDir}/PICSL_sMRI_biomarkers.json"
 	
 	sys ls -l "$OutputDir"
+
+	for i in output/*"${Atlas}"*.nii.gz
+	do
+		c3d "$i" -info
+	done

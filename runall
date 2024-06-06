@@ -26,5 +26,5 @@ do
                 T2Input=$(jq -r 'select(.Atlas == "'"$Atlas"'") | .Inputs.T2' "$AshsAtlasConfigJsonFile" | grep -v null)
         fi
 
-        bash -x run -v -w output/$Atlas -1 "$T1Input" -2 "$T2Input" $Atlas
+        bash -x run -v -1 "$T1Input" -2 "$T2Input" $Atlas
 done
