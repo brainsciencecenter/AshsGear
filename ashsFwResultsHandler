@@ -186,7 +186,7 @@ function uploadQaFile {
 		fi
 	fi
 
-	regex=$(echo "$AtlasJson" | jq -r 'if .QaFileRegEx then .QaFileRegEx | @csv else empty end' | sed -r 's/"(.*)"$/(\1)/; s/","/)|(/' )
+	regex=$(echo "$AtlasJson" | jq -r 'if .QaFileRegEx then .QaFileRegEx | @csv else empty end' | sed -r 's/"(.*)"$/(\1)/; s/","/)|(/g' )
 	if [ -z "$regex" ]
 	then
 		regex="^$"
@@ -231,7 +231,8 @@ function uploadQaFile {
             esac
 	done
 
-	sys fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "+={ \"JobId\": \"${JobId}\", \"DateTime\": \"${DateTime}\", \"JobUrl\": \"${JobUrl}\" }" "$AcquisitionId"
+	sys txt2json -v -w "$WorkDir" -a "$Atlas" -j "$JobId" -d "$DateTime"  > "${OutputDir}/${Atlas}.json"
+	sys fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "{ \"$Atlas\": $(< ${OutputDir}/${Atlas}.json) }" "$AcquisitionId"
 
 	fwget -1 "$AcquisitionId" | jq -r '.info.PICSL_sMRI_biomarkers' > "${OutputDir}/PICSL_sMRI_biomarkers.json"
 	
