@@ -1,0 +1,65 @@
+#!/bin/bash
+
+CmdName=$(basename "$0")
+Syntax="${CmdName} [-d date]{-j jobid}[-n][-v]{-a Atlas}{-w WorkingDir}"
+
+while getopts "a:d:j:nvw:" arg
+do
+	case "$arg" in
+		a|d|j|n|v|w)
+			eval "opt_${arg}='${OPTARG:=1}'"
+			;;
+	esac
+done
+
+if [ -z "$opt_a" ]
+then
+	echo "${CmdName} : Missing argument -a Atlas" 1>&2
+	echo "$Syntax" 1>&2
+	exit 1
+else
+	Atlas="$opt_a"
+fi
+
+if [ -z "$opt_j" ]
+then
+	echo "${CmdName} : Missing argument -j JobId" 1>&2
+	echo "$Syntax" 1>&2
+	exit 2
+else
+	JobId="$opt_j"
+fi
+
+if [ -z "$opt_w" ]
+then
+	echo "${CmdName} : Missing argument -w WorkingDir" 1>&2
+	echo "$Syntax" 1>&2
+	exit 3
+else
+	WorkingDir="$opt_w"
+fi
+
+DateTime=$(date)
+[ -n "$opt_d" ] && DateTime="$opt_d"
+
+FinalDir="${WorkingDir}/final"
+
+function getTxtMetrics {
+	local WorkDir="$1"
+
+
+	for i in "${WorkDir}/"*.txt
+	do
+		BaseFilename=$(echo "$i" | sed -E 's,'"$FinalDir"'/,,; s,('"$Atlas"')-[^_]*_(.*.txt)$,\2,')
+		[ -n "$opt_v" ] && echo "BaseFilename = '${BaseFilename}'" 1>&2
+	
+		if echo "$i" | grep -q icv.txt
+		then
+			awk '{printf("{ \"%s\": \"%s\" }", "ICV", $2) }' "$i" | jq -r -s --argjson BaseFilename "\"$BaseFilename\""  ' { ( $BaseFilename  ): ( add ) } ' 
+		else
+			awk '{printf("{ \"%s\": \"%s\" }", $3, $5) }' "$i" | jq -r -s --argjson BaseFilename "\"$BaseFilename\""  ' { ( $BaseFilename  ): ( add ) } ' 
+		fi
+	done
+}
+
+getTxtMetrics "$FinalDir" | jq -r -s --argjson JobId "\"${JobId}\"" --argjson DateTime "\"${DateTime}\"" '{ "JobInfo" : { "JobId": $JobId, "JobDateTime": $DateTime }, "Metrics": (add) }'

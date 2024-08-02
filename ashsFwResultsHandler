@@ -82,8 +82,6 @@ function uploadQaFile {
 	#then
 	#    	T1Tag=T1
 	#else
-	#        T1Tag=T1-MRI
-	#fi
 
 	T1Tag=T1-MRI
 	T2Tag=T2-MRI
@@ -131,8 +129,11 @@ function uploadQaFile {
 		    sys c3d "${OutputDir}/${IdString}_${Atlas}_lfseg_${what}.nii.gz" -info
 		done
 
+		sys cp "${WorkDir}/tse.nii.gz" "${OutputDir}/${IdString}_${Atlas}_tse.nii.gz"
+
 	# Add in the next 3 layers
 		sys itksnap-wt -i "$ItkSnapFile" \
+		   -layers-set-main "${OutputDir}/${IdString}_${Atlas}_tse.nii.gz" \
 		   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_corr_usegray.nii.gz" -psn "JLF/CL result" \
 		   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_corr_nogray.nii.gz" -psn "JLF/CL-lite result" \
 		   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_heur.nii.gz" -psn "JLF result" \
@@ -146,6 +147,7 @@ function uploadQaFile {
 		if [ -e "$ItkSnapIcvFile" ]
 		then
 			sys itksnap-wt -i "$ItkSnapIcvFile" \
+		           -layers-set-main "${OutputDir}/${IdString}_${Atlas}_tse.nii.gz" \
 			   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_corr_usegray.nii.gz" -psn "JLF/CL result" \
 			   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_corr_nogray.nii.gz" -psn "JLF/CL-lite result" \
 			   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_heur.nii.gz" -psn "JLF result" \
@@ -162,6 +164,9 @@ function uploadQaFile {
 		sys c3d														\
 			"$WorkDir/final/${AshsPrefix}_left_lfseg_corr_nogray.nii.gz" -shift $SHIFT_ICV -replace $SHIFT_ICV 0     \
     			-type uchar -o "${OutputDir}/${IdString}_${Atlas}_icv.nii.gz"
+
+
+		sys cp "${WorkDir}/tse.nii.gz" "${OutputDir}/${IdString}_${Atlas}_tse.nii.gz"
 
 		sys c3d "${OutputDir}/${IdString}_${Atlas}_icv.nii.gz" -info
 

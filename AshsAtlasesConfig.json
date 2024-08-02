@@ -7,7 +7,6 @@
     "md5Url": "https://upenn.box.com/shared/static/602oyyvkiyukeqwej6444vklwvyydhkz.md5sum",
     "QaFileRegEx": [ 
 	"final/.*_(left|right)_lfseg_heur.nii.gz",
-	"tse.nii.gz",
 	"qa/.*qa_seg_bootstrap_heur_(left|right)_qa.png" 
     ],
     "Url": "https://upenn.box.com/shared/static/9q9q9e5d58mg9f0aurcjkdx1bt3anvp7.tgz"
