@@ -129,11 +129,10 @@ function uploadQaFile {
 		    sys c3d "${OutputDir}/${IdString}_${Atlas}_lfseg_${what}.nii.gz" -info
 		done
 
-		sys cp "${WorkDir}/tse.nii.gz" "${OutputDir}/${IdString}_${Atlas}_tse.nii.gz"
+		sys cp "${WorkDir}/tse.nii.gz" "${OutputDir}/${IdString}_${Atlas}_main_input.nii.gz"
 
-	# Add in the next 3 layers
 		sys itksnap-wt -i "$ItkSnapFile" \
-		   -layers-set-main "${OutputDir}/${IdString}_${Atlas}_tse.nii.gz" \
+		   -layers-set-main "${OutputDir}/${IdString}_${Atlas}_main_input.nii.gz" \
 		   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_corr_usegray.nii.gz" -psn "JLF/CL result" \
 		   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_corr_nogray.nii.gz" -psn "JLF/CL-lite result" \
 		   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_heur.nii.gz" -psn "JLF result" \
@@ -146,8 +145,9 @@ function uploadQaFile {
 		ItkSnapHarPIcvFile="${OutputDir}/${IdString}_ASHS-HarP-ICV_results.itksnap"
 		if [ -e "$ItkSnapIcvFile" ]
 		then
+			# if there was ICV output, add HarP output to the ICV workspace file 
 			sys itksnap-wt -i "$ItkSnapIcvFile" \
-		           -layers-set-main "${OutputDir}/${IdString}_${Atlas}_tse.nii.gz" \
+		           -layers-set-main "${OutputDir}/${IdString}_${Atlas}_main_input.nii.gz" \
 			   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_corr_usegray.nii.gz" -psn "JLF/CL result" \
 			   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_corr_nogray.nii.gz" -psn "JLF/CL-lite result" \
 			   -las "${OutputDir}/${IdString}_${Atlas}_lfseg_heur.nii.gz" -psn "JLF result" \
