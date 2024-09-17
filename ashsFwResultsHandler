@@ -106,7 +106,7 @@ function uploadQaFile {
 	AcquisitionId=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
 	JobId=$(jq -r '.job.id' "$ConfigJsonFile")
 	JobUrl="https://upenn.flywheel.io/#/jobs/${JobId}"
-	DateTime=$(date)
+	DateTime=$(date --iso-8601=seconds -u)
 	
 	if [ "$Atlas" == "ASHS-HarP" ]
 	then

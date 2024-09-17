@@ -19,10 +19,11 @@
     },
     "custom": {
         "gear-builder": {
-            "image": "ashs:0.1.61",
+            "image": "ashs:0.1.62",
             "category": "analysis"
         },
         "flywheel": {
+            "suite": "BrainScienceCenter",
             "show-job": true
         }
     },
@@ -85,10 +86,10 @@
             "type": "string"
         }
     },
-    "label": "Ashs",
-    "name": "ashs",
+    "label": "Ashs-dev",
+    "name": "ashs-dev",
     "source": "",
     "url": "",
     "license": "MIT",
-    "version": "0.1.61"
+    "version": "0.1.62"
 }
