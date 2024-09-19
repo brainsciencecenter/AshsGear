@@ -12,7 +12,7 @@
     "Url": "https://upenn.box.com/shared/static/9q9q9e5d58mg9f0aurcjkdx1bt3anvp7.tgz"
 }
 {
-    "Atlas": "ASHS-PMC",
+    "Atlas": "ASHS-PMC-T2",
     "Directory": "/app/atlas/data/ashs_atlas_upennpmc_20170810",
     "Inputs": { 
 	    "T1" : "testdata/124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz",
