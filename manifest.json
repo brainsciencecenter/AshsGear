@@ -49,48 +49,44 @@
         ]
       }
     },
-    "api-key": {
-      "base": "api-key"
-    }
-  },
-  "config": {
-    "ASHS_Atlases": {
-      "default": "None",
-      "description": "May be one of ASHS-ABC-3T, ASHS-ABC-7T, ASHS-HarP, ASHS-ICV, ASHS-Magdeburg, ASHS-PMC, ASHS-PMC-T1, ASHS-Princeton",
-      "enum": [
-        "None",
-        "ASHS-ABC-3T",
-        "ASHS-ABC-7T",
-        "ASHS-HarP",
-        "ASHS-ICV",
-        "ASHS-Magdeburg",
-        "ASHS-PMC",
-        "ASHS-PMC-T1",
-        "ASHS-Princeton"
-      ],
-      "type": "string"
+    "config": {
+        "ASHS_Atlases": {
+            "default": "None",
+            "description": "May be one of ASHS-ABC-3T, ASHS-ABC-7T, ASHS-HarP, ASHS-ICV, ASHS-Magdeburg, ASHS-PMC-T1, ASHS-PMC-T2, ASHS-Princeton",
+            "enum": [
+                "None",
+                "ASHS-ABC-3T",
+                "ASHS-ABC-7T",
+                "ASHS-HarP",
+                "ASHS-ICV",
+                "ASHS-Magdeburg",
+                "ASHS-PMC-T1",
+                "ASHS-PMC-T2",
+                "ASHS-Princeton"
+            ],
+            "type": "string"
+        },
+        "QaPlacement": {
+            "default": "Acquisition",
+            "description": "Where to place QA output files",
+            "enum": [
+                "",
+                "None",
+                "Acquisition",
+                "Analysis"
+            ],
+            "type": "string"
+        },
+        "ProjectName": {
+            "default": "",
+            "description": "The group and project for this analysis.  Defaults the group/project the gear is run under.",
+            "type": "string"
+        }
     },
-    "QaPlacement": {
-      "default": "Acquisition",
-      "description": "Where to place QA output files",
-      "enum": [
-        "",
-        "None",
-        "Acquisition",
-        "Analysis"
-      ],
-      "type": "string"
-    },
-    "ProjectName": {
-      "default": "",
-      "description": "The group and project for this analysis.  Defaults the group/project the gear is run under.",
-      "type": "string"
-    }
-  },
-  "label": "Ashs-dev",
-  "name": "ashs-dev",
-  "source": "",
-  "url": "",
-  "license": "MIT",
-  "version": "0.1.63"
+    "label": "Ashs-dev",
+    "name": "ashs-dev",
+    "source": "",
+    "url": "",
+    "license": "MIT",
+    "version": "0.1.63"
 }
