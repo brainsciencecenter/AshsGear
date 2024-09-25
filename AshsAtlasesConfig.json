@@ -6,19 +6,41 @@
     },
     "md5Url": "https://upenn.box.com/shared/static/602oyyvkiyukeqwej6444vklwvyydhkz.md5sum",
     "QaFileRegEx": [ 
-	"final/.*_(left|right)_lfseg_heur.nii.gz",
 	"qa/.*qa_seg_bootstrap_heur_(left|right)_qa.png" 
+    ],
+    "OutputDir": [
+	{
+	    "FileRegEx": "final/.*_right_lfseg_heur.nii.gz",
+	    "Tags": ["Right", "Segmentation", "AshsOutput", "ASHS-PMC-T1"]
+	},
+	{
+	    "FileRegEx": "final/.*_left_lfseg_heur.nii.gz",
+	    "Tags": ["Left", "Segmentation", "AshsOutput", "ASHS-PMC-T1"]
+	}
     ],
     "Url": "https://upenn.box.com/shared/static/9q9q9e5d58mg9f0aurcjkdx1bt3anvp7.tgz"
 }
 {
-    "Atlas": "ASHS-PMC",
+    "Atlas": "ASHS-PMC-T2",
     "Directory": "/app/atlas/data/ashs_atlas_upennpmc_20170810",
     "Inputs": { 
 	    "T1" : "testdata/124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz",
 	    "T2" : "testdata/124822x20210126x3TxABC/T2_2D_0.4x0.4x1.2mm_180flip_ND.nii.gz"
     },
     "md5Url": "https://upenn.box.com/shared/static/tu2sjoy0omq5vgrcg2od7fccqfcixt61.md5sum",
+    "QaFileRegEx": [ 
+	"qa/.*qa_seg_bootstrap_heur_(left|right)_qa.png" 
+    ],
+    "OutputDir": [
+	{
+	    "FileRegEx": "final/.*_right_lfseg_heur.nii.gz",
+	    "Tags": ["Right", "Segmentation", "AshsOutput", "ASHS-PMC-T2"]
+	},
+	{
+	    "FileRegEx": "final/.*_left_lfseg_heur.nii.gz",
+	    "Tags": ["Left", "Segmentation", "AshsOutput", "ASHS-PMC-T2"]
+	}
+    ],
     "Url": "https://upenn.box.com/shared/static/zdikuhgwc67tp3d85bml36n6asbm92yy.tgz"
 }
 {

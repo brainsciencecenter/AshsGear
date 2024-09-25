@@ -1,7 +1,7 @@
 #!/bin/bash
 
 IMAGE=$(jq -r '.custom["gear-builder"].image' manifest.json)
-BASEDIR=/data/holder/Ashs
+BASEDIR=/home/holder/Work/Ashs
 CURDIR=${BASEDIR}/docker-ashs-base
 
 # Command:

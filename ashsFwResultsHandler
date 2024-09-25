@@ -121,10 +121,10 @@ function uploadQaFile {
 		for what in heur corr_usegray corr_nogray
 		do
 		    sys c3d														\
-		    		"$WorkDir/final/${AshsPrefix}_left_lfseg_${what}.nii.gz" -shift $SHIFT_LEFT -replace $SHIFT_LEFT 0	\
-				"$WorkDir/final/${AshsPrefix}_right_lfseg_${what}.nii.gz" -shift $SHIFT_RIGHT -replace $SHIFT_RIGHT 0	\
-				-add -type uchar 											\
-				-o "${OutputDir}/${IdString}_${Atlas}_lfseg_${what}.nii.gz"
+		    	  "$WorkDir/final/${AshsPrefix}_left_lfseg_${what}.nii.gz" -shift $SHIFT_LEFT -replace $SHIFT_LEFT 0	\
+			  "$WorkDir/final/${AshsPrefix}_right_lfseg_${what}.nii.gz" -shift $SHIFT_RIGHT -replace $SHIFT_RIGHT 0	\
+			   -add -type uchar 											\
+			   -o "${OutputDir}/${IdString}_${Atlas}_lfseg_${what}.nii.gz"
 
 		    sys c3d "${OutputDir}/${IdString}_${Atlas}_lfseg_${what}.nii.gz" -info
 		done
@@ -191,6 +191,9 @@ function uploadQaFile {
 		fi
 	fi
 
+	OutputDirJson=$(echo "$AtlasJson" | jq -r '.OutputDir')
+	sys genMetadataFile -a "$Atlas" -c "$ConfigJsonFile" -f "$WorkDir" -i "$IdString" -j "$OutputDirJson" -o "$OutputDir"
+
 	regex=$(echo "$AtlasJson" | jq -r 'if .QaFileRegEx then .QaFileRegEx | @csv else empty end' | sed -r 's/"(.*)"$/(\1)/; s/","/)|(/g' )
 	if [ -z "$regex" ]
 	then
@@ -199,6 +202,9 @@ function uploadQaFile {
 
 	[ -n "$opt_v" ] && find "${WorkDir}" -type f | grep -E "$regex"
 
+	#
+	# Copy in the QA files to the apropriate output
+	#
     	for i in $(find "${WorkDir}" -type f | grep -E "$regex")
     	do
     	    BaseName=$(basename "$i" )

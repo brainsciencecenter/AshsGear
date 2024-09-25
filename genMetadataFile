@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+
+import argparse
+import flywheel
+import fwgearutils
+import json
+import os
+import pyjq
+import subprocess
+import sys
+
+#from flywheel_gear_toolkit import GearToolkitContext
+
+CmdName = os.path.basename(sys.argv[0])
+
+
+
+ap = argparse.ArgumentParser()
+
+ap.add_argument('-a', '--atlas', default=None, action='store', help='Atlas name')
+ap.add_argument('-c', '--config-file', default=None, action='store', help='Config json file to use instead of default config.json')
+ap.add_argument('-f', '--find-dir', default=None, action='store', help='Directory to hunt for ASHS output file')
+ap.add_argument('-i', '--id-string', default=None, action='store', help='IdString: 7_anat_T1w-trimmed')
+ap.add_argument('-j', '--json', default=None,  action='store', help='Json file to load for output metadata')
+ap.add_argument('-n', '--no-op', default=None,  action='store_true', help='no-op')
+ap.add_argument('-o', '--output-dir', default=None,  action='store', help='Directory to copy the Ashs output file to')
+ap.add_argument('-v', '--verbose', default=None,  action='store_true', help='verbose')
+
+args = ap.parse_args()
+
+fw = fwgearutils.getFW(args, Root=True)
+if (not fw):
+    print("{} : unable to initialize flywheel object".format(CmdName), file=sys.stderr)
+    sys.exit(1)
+
+if (args.config_file):
+   ConfigJsonFile = args.config_file
+else:
+   ConfigJsonFile='config.json'
+
+with open(ConfigJsonFile) as f:
+   ConfigJson = json.load(f)
+
+OutputDirDict = json.loads(args.json)
+
+Modality = pyjq.all('..|.modality?|select(.!=null)', ConfigJson)[0]
+Classification = pyjq.all('..|.classification?|select(.!=null)', ConfigJson)[0]
+
+FindDir=args.find_dir
+IdString=args.id_string
+Atlas=args.atlas
+OutputDir=args.output_dir
+
+with flywheel.GearContext() as context:
+    for OutputFileDict in OutputDirDict:
+        FileRegEx = OutputFileDict["FileRegEx"]
+        Filename = subprocess.getoutput("./copyFile2Output -f '{}' -r '{}' -i '{}' -a '{}' -o '{}'".format(
+            FindDir,
+            FileRegEx,
+            IdString,
+            Atlas,
+            OutputDir)
+        )
+
+        Tags = OutputFileDict["Tags"]
+        if (args.verbose):
+            print("Filename = '{}', Tags = '{}'".format(Filename, ','.join(Tags)))
+        
+        if (not args.no_op):
+            context.update_file_metadata(Filename, modality=Modality, tags=Tags, classification=Classification)
