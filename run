@@ -138,6 +138,7 @@ export PATH=${FLYWHEEL}:${FLYWHEEL}/flywheel/bin:$PATH
 export PYTHONPATH=${FLYWHEEL}/flywheel/lib:$PYTHONPATH
 
 sys sed -i 's,| bc,| /usr/bin/bc,' /app/ashs/bin/ashs_grid.sh
+sys sed -i 's/^set -x /set /' $(grep -r '^set -x' /app/ashs | cut -f 1 -d ':')
 
 [ -n "$opt_c" ] && ConfigJsonFile="$opt_c"
 
@@ -200,7 +201,7 @@ fi
 	read T1NiftiFileTrimmed
 	read T1NiftiFileTrimmedSanitized
 	read T2NiftiFileSanitized
-} < <(sys ashsPrepT1T2Inputs $opt_n $opt_v -1 "$T1Input" -2 "$T2Input" )
+} < <(sys ashsPrepT1T2Inputs $opt_n $opt_v -1 "$T1Input" -2 "$T2Input" -c "$ConfigJsonFile" )
 	
 if [ -z "$Atlases" ]
 then

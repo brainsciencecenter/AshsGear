@@ -4,7 +4,7 @@
   "command": "./run",
   "description": "ASHS: Automatic Segmentation of Hippocampal Subfields",
   "environment": {
-    "PATH": "/flywheel/v0:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "PATH": "/flywheel/v0:/flywheel/v0/flywheel/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
     "LANG": "C.UTF-8",
     "GPG_KEY": "E3FF2839C048B25C084DEBE9B26995E310250568",
     "PYTHON_VERSION": "3.9.6",
@@ -20,7 +20,7 @@
   },
   "custom": {
     "gear-builder": {
-      "image": "ashs:0.1.63",
+      "image": "ashs:0.1.68",
       "category": "analysis"
     },
     "flywheel": {
@@ -49,44 +49,49 @@
         ]
       }
     },
-    "config": {
-        "ASHS_Atlases": {
-            "default": "None",
-            "description": "May be one of ASHS-ABC-3T, ASHS-ABC-7T, ASHS-HarP, ASHS-ICV, ASHS-Magdeburg, ASHS-PMC-T1, ASHS-PMC-T2, ASHS-Princeton",
-            "enum": [
-                "None",
-                "ASHS-ABC-3T",
-                "ASHS-ABC-7T",
-                "ASHS-HarP",
-                "ASHS-ICV",
-                "ASHS-Magdeburg",
-                "ASHS-PMC-T1",
-                "ASHS-PMC-T2",
-                "ASHS-Princeton"
-            ],
-            "type": "string"
-        },
-        "QaPlacement": {
-            "default": "Acquisition",
-            "description": "Where to place QA output files",
-            "enum": [
-                "",
-                "None",
-                "Acquisition",
-                "Analysis"
-            ],
-            "type": "string"
-        },
-        "ProjectName": {
-            "default": "",
-            "description": "The group and project for this analysis.  Defaults the group/project the gear is run under.",
-            "type": "string"
-        }
+    "api-key": {
+      "base": "api-key",
+      "read-only": false
+    }
+  },
+  "config": {
+    "ASHS_Atlases": {
+      "default": "None",
+      "description": "May be one of ASHS-ABC-3T, ASHS-ABC-7T, ASHS-HarP, ASHS-ICV, ASHS-Magdeburg, ASHS-PMC-T1, ASHS-PMC-T2, ASHS-Princeton",
+      "enum": [
+        "None",
+        "ASHS-ABC-3T",
+        "ASHS-ABC-7T",
+        "ASHS-HarP",
+        "ASHS-ICV",
+        "ASHS-Magdeburg",
+        "ASHS-PMC-T1",
+        "ASHS-PMC-T2",
+        "ASHS-Princeton"
+      ],
+      "type": "string"
     },
-    "label": "Ashs-dev",
-    "name": "ashs-dev",
-    "source": "",
-    "url": "",
-    "license": "MIT",
-    "version": "0.1.63"
+    "QaPlacement": {
+      "default": "Acquisition",
+      "description": "Where to place QA output files",
+      "enum": [
+        "",
+        "None",
+        "Acquisition",
+        "Analysis"
+      ],
+      "type": "string"
+    },
+    "ProjectName": {
+      "default": "",
+      "description": "The group and project for this analysis.  Defaults the group/project the gear is run under.",
+      "type": "string"
+    }
+  },
+  "label": "Ashs-dev",
+  "name": "ashs-dev",
+  "source": "",
+  "url": "",
+  "license": "MIT",
+  "version": "0.1.68"
 }

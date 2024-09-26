@@ -41,7 +41,18 @@ RUN pip3 install flywheel-sdk globre pytz pyjq tzlocal
 # Copy the current scriptlet
 COPY docker-ashs-base /app/
 
-COPY ashsPrepT1T2Inputs ashsFwResultsHandler genMetadataFile config.json manifest.json run runall trim_neck.sh txt2json ${FLYWHEEL}/
+COPY    ashsPrepT1T2Inputs	\
+	ashsFwResultsHandler	\
+	copyFile2Output		\
+     	config.json		\
+	genMetadataFile		\
+	manifest.json		\
+	run			\
+	runall			\
+	trim_neck.sh		\
+	txt2json		\
+	${FLYWHEEL}/
+
 RUN chmod 755 ashsFwResultsHandler run runall trim_neck.sh txt2json
 COPY AshsAtlasesConfig.json /app/AshsAtlasesConfig.json
 COPY testdata ${FLYWHEEL}/testdata

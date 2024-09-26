@@ -247,9 +247,14 @@ function uploadQaFile {
 
 	fwget -1 "$AcquisitionId" | jq -r '.info.PICSL_sMRI_biomarkers' > "${OutputDir}/PICSL_sMRI_biomarkers.json"
 	
-	sys ls -l "$OutputDir"
+	sys ls -la "$OutputDir"
+	if [ -e "${OutputDir}/.metadata.json" ]
+	then
+	    cat "${OutputDir}/.metadata.json"
+	fi
 
 	for i in output/*"${Atlas}"*.nii.gz
 	do
 		c3d "$i" -info
 	done
+

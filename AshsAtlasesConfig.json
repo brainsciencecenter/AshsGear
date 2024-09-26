@@ -38,7 +38,7 @@
 	},
 	{
 	    "FileRegEx": "final/.*_left_lfseg_heur.nii.gz",
-	    "Tags": ["Left", "Segmentation", "AshsOutput", "ASHS-PMC-T2"]
+	    "Tags": ["Left", "Segmentation", "AshsOutput", "ASHS-PMC-T2 "]
 	}
     ],
     "Url": "https://upenn.box.com/shared/static/zdikuhgwc67tp3d85bml36n6asbm92yy.tgz"
