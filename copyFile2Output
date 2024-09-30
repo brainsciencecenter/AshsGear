@@ -1,0 +1,39 @@
+#!/bin/bash
+
+CmdName=$(basename "$0")
+
+Syntax="${CmdName} [-a Atlas][-b Basename]{-f FindDir}[-i IdString][-n][-o OutputDir][-r FileRegEx][-v]"
+
+#
+# copyFile2Output -f /tmp/ASHS-PMC-T1-wd-Q2omxR -r "final/.*left_lfseg_heur.nii.gz" -i 7_anat_T1w-trimmed -a ASHS-PMC-T1 -o /flywheel/v0/output
+# /flywheel/v0/output/7_anat_T1w-trimmed_ASHS-PMC-T1_left_lfseg_heur.nii.gz
+#
+function sys {
+    [ -n "${opt_n}${opt_v}" ] && echo "$@" 1>&2
+    [ -n "$opt_n" ] || "$@"
+}
+
+while getopts a:b:f:i:o:r:nv arg
+do
+	case "$arg" in
+	     a|b|f|i|n|o|r|v)
+		eval "opt_${arg}='${OPTARG:=1}'"
+		;;
+	esac
+done
+
+shift $(("$OPTIND" - 1))
+
+AshsPrefix=$(basename "$opt_f")
+
+OutputDir="$opt_o"
+IdString="$opt_i"
+Atlas="$opt_a"
+
+FromFilename=$(find "$opt_f" -type f | grep -e "$opt_r")
+Basename=$(basename "$FromFilename")
+NewBaseName=$(echo "$Basename" | sed "s/${AshsPrefix}_//")
+OutputFile=$(echo "${OutputDir}/${IdString}_${Atlas}_${NewBaseName}")
+
+sys cp "$FromFilename" "$OutputFile"
+echo "$OutputFile"
