@@ -13,8 +13,6 @@ import sys
 
 CmdName = os.path.basename(sys.argv[0])
 
-
-
 ap = argparse.ArgumentParser()
 
 ap.add_argument('-a', '--atlas', default=None, action='store', help='Atlas name')
@@ -24,6 +22,7 @@ ap.add_argument('-i', '--id-string', default=None, action='store', help='IdStrin
 ap.add_argument('-j', '--json', default=None,  action='store', help='Json file to load for output metadata')
 ap.add_argument('-n', '--no-op', default=None,  action='store_true', help='no-op')
 ap.add_argument('-o', '--output-dir', default=None,  action='store', help='Directory to copy the Ashs output file to')
+ap.add_argument('-t', '--tags', default=None, action='store', help='Comma separated tags to add to the output files')
 ap.add_argument('-v', '--verbose', default=None,  action='store_true', help='verbose')
 
 args = ap.parse_args()
@@ -34,17 +33,25 @@ if (not fw):
     sys.exit(1)
 
 if (args.config_file):
+   print("args.config_file) = '{}'".format(args.config_file))
    ConfigJsonFile = args.config_file
 else:
    ConfigJsonFile='config.json'
+
+if (args.tags):
+    ArgumentTags = ','.split(args.tags)
+else:
+    ArgumentTags = []
+    
+print("ConfigJsonFile = '{}'".format(ConfigJsonFile))
 
 with open(ConfigJsonFile) as f:
    ConfigJson = json.load(f)
 
 OutputDirDict = json.loads(args.json)
 
-Modality = pyjq.all('..|.modality?|select(.!=null)', ConfigJson)[0]
-Classification = pyjq.all('..|.classification?|select(.!=null)', ConfigJson)[0]
+Modality = pyjq.all('..|.modality?|select(.!=null)', ConfigJson)
+Classification = pyjq.all('..|.classification?|select(.!=null)', ConfigJson)
 
 FindDir=args.find_dir
 IdString=args.id_string
@@ -63,7 +70,7 @@ with flywheel.GearContext() as context:
         )
         BaseOutputFilename=os.path.basename(Filename)
 
-        Tags = OutputFileDict["Tags"]
+        Tags = OutputFileDict["Tags"] + ArgumentTags
         if (args.verbose):
             print("Filename = '{}', Tags = '{}'".format(Filename, ','.join(Tags)))
         

@@ -144,7 +144,7 @@ then
            	exit 5
     fi
 else
-	[ -n "$opt_v" ] && echo "${CmdName} : '$T1NiftiFile' already trimmed" 1>&2
+	[ -n "$opt_v" ] && echo "${CmdName} : '$T1NiftiFile' is tagged as 'Trimmed'" 1>&2
 	T1NiftiFileTrimmed=$T1NiftiFile
 fi
 

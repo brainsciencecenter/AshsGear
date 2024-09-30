@@ -1,23 +1,50 @@
 {
-  "config": {
-    "ASHS_Atlases": "None",
-    "QaPlacement": "",
-    "ProjectName": ""
-  },
-  "job": {
-    "id": "64dd59f29f8a14b2e30be619",
-    "gear_info": {
-      "id": "64dd59bb248e913f2c367711",
-      "category": "analysis",
-      "name": "ashs",
-      "version": "0.1.21",
-      "capabilities": null
-    }
+  "destination": {
+    "id": "66f5b5369c6a504e94c91fbb",
+    "type": "analysis"
   },
   "inputs": {
     "T1w": {
       "hierarchy": {
-        "id": "65eb4fb8e71411895685e1bf",
+        "id": "66e473801b4b58bc3236d6d5",
+        "type": "acquisition"
+      },
+      "object": {
+        "type": "nifti",
+        "mimetype": "application/octet-stream",
+        "modality": "MR",
+        "classification": {
+          "Features": [],
+          "Intent": [
+            "Structural"
+          ],
+          "Measurement": [
+            "T1"
+          ]
+        },
+        "tags": [
+          "Trimmed",
+          "AlohaInput"
+        ],
+        "info": {},
+        "size": 22899488,
+        "zip_member_count": null,
+        "version": 13,
+        "file_id": "66ecb261571e512384b5b0e4",
+        "origin": {
+          "type": "job",
+          "id": "66f1c77e5d966bb25b52185b"
+        }
+      },
+      "location": {
+        "path": "/flywheel/v0/input/T1w/7_anat_T1w-trimmed.nii.gz",
+        "name": "7_anat_T1w-trimmed.nii.gz"
+      },
+      "base": "file"
+    },
+    "T2w": {
+      "hierarchy": {
+        "id": "66e4737f1b4b58bc3236d6d3",
         "type": "acquisition"
       },
       "object": {
@@ -28,134 +55,48 @@
           "Intent": [
             "Structural"
           ],
-          "Features": [
-            "3D"
-          ],
+          "Features": [],
           "Measurement": [
-            "T1"
+            "T2"
           ]
         },
-        "tags": [],
-        "info": {
-          "InPlanePhaseEncodingDirectionDICOM": "ROW",
-          "InversionTime": 1.06,
-          "PixelBandwidth": 210,
-          "ConsistencyInfo": "N4_VE11C_LATEST_20160120",
-          "ImageComments": "124822@dwolklab:NACC-SC",
-          "ProcedureStepDescription": "124822_20210126_3T",
-          "DeviceSerialNumber": "66044",
-          "AcquisitionMatrixPE": 300,
-          "ImageOrientationPatientDICOM": [
-            -0.00938609,
-            0.931279,
-            -0.364187,
-            -0.0122206,
-            -0.364282,
-            -0.931208
-          ],
-          "PatientSex": "M",
-          "ManufacturersModelName": "Prisma",
-          "ProtocolName": "T1_3D_0.8x0.8x0.8",
-          "RepetitionTime": 2.4,
-          "RefLinesPE": 32,
-          "MagneticFieldStrength": 3,
-          "PhaseEncodingSteps": 299,
-          "MRAcquisitionType": "3D",
-          "SliceThickness": 0.8,
-          "AcquisitionNumber": 1,
-          "InstitutionName": "SC3T",
-          "TxRefAmp": 266.99,
-          "BodyPartExamined": "BRAIN",
-          "AcquisitionDateTime": "2021-01-26T12:37:29.315000",
-          "SAR": 0.0418504,
-          "PulseSequenceDetails": "%SiemensSeq%_tfl",
-          "ScanningSequence": "GR_IR",
-          "Manufacturer": "Siemens",
-          "ConversionSoftware": "dcm2niix",
-          "PercentPhaseFOV": 93.75,
-          "ReconMatrixPE": 300,
-          "FlipAngle": 8,
-          "ConversionSoftwareVersion": "v1.0.20190410  (JP2:OpenJPEG) GCC4.8.4",
-          "SeriesDescription": "T1_3D_0.8x0.8x0.8_ND",
-          "PartialFourier": 1,
-          "InstitutionAddress": "Curie_Blvd._422_Philadelphia_PA_US_19104",
-          "ShimSetting": [
-            3733,
-            2549,
-            372,
-            -173,
-            97,
-            -350,
-            27,
-            39
-          ],
-          "ReceiveCoilActiveElements": "HC1-7;NC1",
-          "PatientPosition": "HFS",
-          "SequenceName": "_tfl3d1_16ns",
-          "StudyInstanceUID": "1.3.12.2.1107.5.2.43.66044.30000021010817494961400000133",
-          "SeriesNumber": 7,
-          "ImageType": [
-            "ORIGINAL",
-            "PRIMARY",
-            "M",
-            "ND",
-            "NORM"
-          ],
-          "ReceiveCoilName": "HeadNeck_64",
-          "EchoTime": 0.00224,
-          "SequenceVariant": "SK_SP_MP",
-          "ImagingFrequency": 123.263,
-          "BaseResolution": 320,
-          "StudyID": "1",
-          "ScanOptions": "IR_WE",
-          "PhaseResolution": 1,
-          "SoftwareVersions": "syngo_MR_E11",
-          "StationName": "AWP66044",
-          "SeriesInstanceUID": "1.3.12.2.1107.5.2.43.66044.2021012612441156695578766.0.0.0",
-          "Modality": "MR",
-          "AcquisitionTime": "12:37:29.315000",
-          "BIDS": {
-            "Acq": "",
-            "Ce": "",
-            "Dir": "",
-            "Echo": "",
-            "error_message": "",
-            "Filename": "sub-124822_ses-124822x20210126x3TxABC_T1w.nii.gz",
-            "Folder": "anat",
-            "ignore": "",
-            "IntendedFor": "",
-            "Mod": "",
-            "Modality": "T1w",
-            "Path": "sub-124822/ses-124822x20210126x3TxABC/anat",
-            "Rec": "",
-            "Run": "",
-            "Task": "",
-            "template": "anat_file",
-            "valid": true
-          }
-        },
-        "size": 21920469,
+        "tags": [
+          "AlohaInput"
+        ],
+        "info": {},
+        "size": 17298494,
         "zip_member_count": null,
         "version": 1,
-        "file_id": "622fbff9fa62e8ba6ce3156f",
+        "file_id": "66e474816e8f94b3f136d724",
         "origin": {
-          "type": "job",
-          "id": "601058ecdc7fac1e91849a99"
+          "type": "user",
+          "id": "holder@upenn.edu"
         }
       },
       "location": {
-        "path": "/flywheel/v0/input/T1w/7_T1_3D_0_8x0_8x0_8_T1_3D_0.8x0.8x0.8_20160621111355_7.nii.gz",
-        "name": "7_T1_3D_0_8x0_8x0_8_T1_3D_0.8x0.8x0.8_20160621111355_7.nii.gz"
+        "path": "/flywheel/v0/input/T2w/18_anat_T2w_acq_2DHiResMTL.nii.gz",
+        "name": "18_anat_T2w_acq_2DHiResMTL.nii.gz"
       },
       "base": "file"
     },
     "api-key": {
-      "key": "upenn.flywheel.io:djEx2Zsr1-08vml_HSaEmup2TAo2sQkZLd_UhCwS2ZVbgDL5Rtd0XbniA",
-      "base": "api-key"
+      "base": "api-key",
+      "key": "upenn.flywheel.io:djEJoRkz2Zniz67PUDQsXi9Le4pzOBz1a2cj9JvKrOZr9ewEdx_iaIxUw"
     }
   },
-  "destination": {
-    "id": "64dd59f29f8a14b2e30be617",
-    "type": "analysis"
+  "config": {
+    "ASHS_Atlases": "ASHS-PMC-T2",
+    "QaPlacement": "Acquisition",
+    "ProjectName": ""
+  },
+  "job": {
+    "id": "66f5b5369c6a504e94c91fbe",
+    "gear_info": {
+      "id": "66f5b4f68ceb4e4dfd926a72",
+      "category": "analysis",
+      "name": "ashs-dev",
+      "version": "0.1.69",
+      "capabilities": null
+    }
   }
 }

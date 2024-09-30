@@ -192,7 +192,13 @@ function uploadQaFile {
 	fi
 
 	OutputDirJson=$(echo "$AtlasJson" | jq -r '.OutputDir')
-	sys genMetadataFile -a "$Atlas" -c "$ConfigJsonFile" -f "$WorkDir" -i "$IdString" -j "$OutputDirJson" -o "$OutputDir"
+	AlohaInput=$(fwget -1 -j "$JobId" | jq -r '.tags|any(. == "AlohaInput")')
+	if [ "$AlohaInput" == "true" ]
+	then
+	    GenMetadataFileArgs+=( -t 'AlohaInput' )
+	fi
+	
+	sys genMetadataFile -a "$Atlas" "${GenMetadataFileArgs[@]}" -c "$ConfigJsonFile" -f "$WorkDir" -i "$IdString" -j "$OutputDirJson" -o "$OutputDir"
 
 	regex=$(echo "$AtlasJson" | jq -r 'if .QaFileRegEx then .QaFileRegEx | @csv else empty end' | sed -r 's/"(.*)"$/(\1)/; s/","/)|(/g' )
 	if [ -z "$regex" ]

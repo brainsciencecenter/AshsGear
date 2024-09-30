@@ -11,11 +11,11 @@
     "OutputDir": [
 	{
 	    "FileRegEx": "final/.*_right_lfseg_heur.nii.gz",
-	    "Tags": ["Right", "Segmentation", "AshsOutput", "ASHS-PMC-T1"]
+	    "Tags": ["Right", "Segmentation", "ASHS-PMC-T1"]
 	},
 	{
 	    "FileRegEx": "final/.*_left_lfseg_heur.nii.gz",
-	    "Tags": ["Left", "Segmentation", "AshsOutput", "ASHS-PMC-T1"]
+	    "Tags": ["Left", "Segmentation", "ASHS-PMC-T1"]
 	}
     ],
     "Url": "https://upenn.box.com/shared/static/9q9q9e5d58mg9f0aurcjkdx1bt3anvp7.tgz"
@@ -34,11 +34,11 @@
     "OutputDir": [
 	{
 	    "FileRegEx": "final/.*_right_lfseg_heur.nii.gz",
-	    "Tags": ["Right", "Segmentation", "AshsOutput", "ASHS-PMC-T2"]
+	    "Tags": ["Right", "Segmentation", "ASHS-PMC-T2"]
 	},
 	{
 	    "FileRegEx": "final/.*_left_lfseg_heur.nii.gz",
-	    "Tags": ["Left", "Segmentation", "AshsOutput", "ASHS-PMC-T2 "]
+	    "Tags": ["Left", "Segmentation", "ASHS-PMC-T2"]
 	}
     ],
     "Url": "https://upenn.box.com/shared/static/zdikuhgwc67tp3d85bml36n6asbm92yy.tgz"
