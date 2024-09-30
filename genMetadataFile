@@ -71,7 +71,7 @@ with flywheel.GearContext() as context:
 
         Tags = OutputFileDict["Tags"] + ArgumentTags
         if (args.verbose):
-            print("Filename = '{}', Tags = '{}'".format(Filename, ','.join(Tags)))
+            print("Filename = '{}', Modality = '{}', Tags = '{}', classification = '{}'".format(BaseOutputFilename, Modality, ','.join(Tags), Classification) )
         
         if (not args.no_op):
             context.update_file_metadata(BaseOutputFilename, modality=Modality, tags=Tags, classification=Classification)
