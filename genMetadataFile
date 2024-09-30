@@ -49,8 +49,8 @@ with open(ConfigJsonFile) as f:
 
 OutputDirDict = json.loads(args.json)
 
-Modality = pyjq.all('..|.modality?|select(.!=null)', ConfigJson)
-Classification = pyjq.all('..|.classification?|select(.!=null)', ConfigJson)
+Modality = pyjq.all('first(..|.modality?|select(.!=null))', ConfigJson)
+Classification = pyjq.all('first(..|.classification?|select(.!=null))', ConfigJson)
 
 FindDir=args.find_dir
 IdString=args.id_string
