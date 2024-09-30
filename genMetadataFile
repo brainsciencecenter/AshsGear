@@ -33,13 +33,12 @@ if (not fw):
     sys.exit(1)
 
 if (args.config_file):
-   print("args.config_file) = '{}'".format(args.config_file))
    ConfigJsonFile = args.config_file
 else:
    ConfigJsonFile='config.json'
 
 if (args.tags):
-    ArgumentTags = ','.split(args.tags)
+    ArgumentTags = args.tags.split(',')
 else:
     ArgumentTags = []
     
