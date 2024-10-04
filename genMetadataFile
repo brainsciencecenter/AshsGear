@@ -17,13 +17,12 @@ ap = argparse.ArgumentParser()
 
 ap.add_argument('-a', '--atlas', default=None, action='store', help='Atlas name')
 ap.add_argument('-c', '--config-file', default=None, action='store', help='Config json file to use instead of default config.json')
-ap.add_argument('-f', '--find-dir', default=None, action='store', help='Directory to hunt for ASHS output file')
 ap.add_argument('-i', '--id-string', default=None, action='store', help='IdString: 7_anat_T1w-trimmed')
-ap.add_argument('-j', '--json', default=None,  action='store', help='Json file to load for output metadata')
-ap.add_argument('-n', '--no-op', default=None,  action='store_true', help='no-op')
+ap.add_argument('-n', '--no-op', default=False,  action='store_true', help='no-op')
 ap.add_argument('-o', '--output-dir', default=None,  action='store', help='Directory to copy the Ashs output file to')
-ap.add_argument('-t', '--tags', default=None, action='store', help='Comma separated tags to add to the output files')
-ap.add_argument('-v', '--verbose', default=None,  action='store_true', help='verbose')
+ap.add_argument('-v', '--verbose', default=False,  action='store_true', help='verbose')
+
+ap.add_argument('ashsoutput', nargs='+', type=str, default=None, help='Files copy to output and add to .metadata.json')
 
 args = ap.parse_args()
 
@@ -37,41 +36,40 @@ if (args.config_file):
 else:
    ConfigJsonFile='config.json'
 
-if (args.tags):
-    ArgumentTags = args.tags.split(',')
-else:
-    ArgumentTags = []
-    
-print("ConfigJsonFile = '{}'".format(ConfigJsonFile))
+#Modality = pyjq.all('first(..|.modality?|select(.!=null))', ConfigJson)
+#Classification = pyjq.all('first(..|.classification?|select(.!=null))', ConfigJson)
 
-with open(ConfigJsonFile) as f:
-   ConfigJson = json.load(f)
-
-OutputDirDict = json.loads(args.json)
-
-Modality = pyjq.all('first(..|.modality?|select(.!=null))', ConfigJson)
-Classification = pyjq.all('first(..|.classification?|select(.!=null))', ConfigJson)
-
-FindDir=args.find_dir
 IdString=args.id_string
 Atlas=args.atlas
-OutputDir=args.output_dir
+if (args.output_dir):
+    OutputDir=args.output_dir
+else:
+    OutputDir="/flywheel/v0/output"
 
-with flywheel.GearContext() as context:
-    for OutputFileDict in OutputDirDict:
-        FileRegEx = OutputFileDict["FileRegEx"]
-        Filename = subprocess.getoutput("./copyFile2Output -f '{}' -r '{}' -i '{}' -a '{}' -o '{}'".format(
-            FindDir,
-            FileRegEx,
-            IdString,
-            Atlas,
-            OutputDir)
-        )
-        BaseOutputFilename=os.path.basename(Filename)
-
-        Tags = OutputFileDict["Tags"] + ArgumentTags
+with flywheel.GearContext(cfg_path=ConfigJsonFile) as context:    
+    for File in args.ashsoutput:
+        SubProcessCmd = "./copyFile2Output -a {} -c {} -o {} {}".format(
+              Atlas
+            , ConfigJsonFile
+            , OutputDir
+            , File
+        )            
         if (args.verbose):
-            print("Filename = '{}', Modality = '{}', Tags = '{}', classification = '{}'".format(BaseOutputFilename, Modality, ','.join(Tags), Classification) )
-        
-        if (not args.no_op):
-            context.update_file_metadata(BaseOutputFilename, modality=Modality, tags=Tags, classification=Classification)
+            print(CmdName + ": " + SubProcessCmd, file=sys.stderr)
+            
+        OutputJsonString = subprocess.getoutput(SubProcessCmd)
+
+        if (args.verbose):
+            print(OutputJsonString, file=sys.stderr)
+
+        OutputJson = json.loads(OutputJsonString)
+
+        OutputFilename = pyjq.all('.OutputFilename', OutputJson)[0]
+        Metadata = pyjq.all('.Metadata', OutputJson)[0]
+
+        if (Metadata):
+            if (args.verbose):
+                print("Filename = '{}', Metadata = '{}'".format(OutputFilename, Metadata), file=sys.stderr)
+
+            if (not args.no_op):
+                context.update_file_metadata(OutputFilename, **Metadata)

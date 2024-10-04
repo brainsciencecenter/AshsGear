@@ -33,12 +33,36 @@
     ],
     "OutputDir": [
 	{
-	    "FileRegEx": "final/.*_right_lfseg_heur.nii.gz",
-	    "Tags": ["Right", "Segmentation", "ASHS-PMC-T2"]
+	    "FileRegEx": "tse.nii.gz$",
+	    "MapTo": "higresmri.nii.gz",
+	    "Tags": "HighResMri",
+	    "Modality": "MR",
+	    "ExpectedCount": 1	    
 	},
 	{
-	    "FileRegEx": "final/.*_left_lfseg_heur.nii.gz",
-	    "Tags": ["Left", "Segmentation", "ASHS-PMC-T2"]
+	    "FileRegEx": "mprage.nii.gz$",
+	    "MapTo": "t1.nii.gz",
+	    "ExpectedCount": 1
+	},
+	{
+	    "FileRegEx": "final/.*(left|right)_lfseg.*.nii.gz$",
+	    "Modality": "SEG",
+	    "Classification": "$SegmentationJson",
+	    "Tags": [ "$Handedness", "$Atlas" ],
+	    "ExpectedCount": 6
+	},
+	{
+	    "FileRegEx": "final/.*bootstrap.*txt$",
+	    "ExpectedCount": 8
+	},
+	{
+	    "FileRegEx": "affine_t1_to_template/greedy_t1_to_template.mat$",
+	    "MapTo": "greedy.mat",
+	    "ExpectedCount": 1
+	},
+	{
+	    "FileRegEx": "flirt.*/flirt.*.mat$",
+	    "ExpectedCount": 2
 	}
     ],
     "Url": "https://upenn.box.com/shared/static/zdikuhgwc67tp3d85bml36n6asbm92yy.tgz"

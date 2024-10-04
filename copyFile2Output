@@ -1,39 +1,161 @@
 #!/bin/bash
 
 CmdName=$(basename "$0")
+Syntax="${CmdName} [-n][-v] [-c ConfigJsonFile][-o OutputDir]{-a AtlasName} {file}"
 
-Syntax="${CmdName} [-a Atlas][-b Basename]{-f FindDir}[-i IdString][-n][-o OutputDir][-r FileRegEx][-v]"
+while getopts a:c:no:v arg
+do
+    case "$arg" in
+	a|c|n|o|v)
+	    eval "opt_${arg}='${OPTARG:=1}'"
+	    ;;
+    esac
+done
+shift $(( "$OPTIND" - 1 ))
 
-#
-# copyFile2Output -f /tmp/ASHS-PMC-T1-wd-Q2omxR -r "final/.*left_lfseg_heur.nii.gz" -i 7_anat_T1w-trimmed -a ASHS-PMC-T1 -o /flywheel/v0/output
-# /flywheel/v0/output/7_anat_T1w-trimmed_ASHS-PMC-T1_left_lfseg_heur.nii.gz
-#
+if [ -n "$opt_a" ]
+then
+    Atlas=ASHS-PMC-T2
+else
+    echo "${CmdName} : missing -a AtlasName" 1>&2
+    exit 1
+fi
+
+if [ -n "$opt_c" ]
+then
+        ConfigJsonFile="$opt_c"
+else
+	ConfigJsonFile=config.json
+fi
+
+if [ -n "$opt_o" ]
+then
+    OutputDir="$opt_o"
+else
+    OutputDir=/flywheel/v0/output
+fi
+
+AshsFile="$1"
+
+read GearName GearVersion GearId < <(jq -r '.job.gear_info | [ .name, .version, .id ] | join(" ")' "$ConfigJsonFile")
+[ -n "$opt_v" ] && echo "$GearName $GearVersion $GearId" 1>&2
+
+# because filenames can have spaces
+T1Filename=$(jq -r '.inputs.T1w.location.name' "$ConfigJsonFile")
+T1FileId=$(jq -r '.inputs.T1w.object.file_id' "$ConfigJsonFile")
+T2Filename=$(jq -r '.inputs.T2w.location.name' "$ConfigJsonFile")
+T2FileId=$(jq -r '.inputs.T2w.object.file_id' "$ConfigJsonFile")
+AnalysisId=$(jq -r '.destination.id' "$ConfigJsonFile")
+
+# Also known as the Id in other parts of the uploading process
+BaseFilename=$(basename "$T1Filename" .nii.gz)
+
 function sys {
     [ -n "${opt_n}${opt_v}" ] && echo "$@" 1>&2
     [ -n "$opt_n" ] || "$@"
 }
 
-while getopts a:b:f:i:o:r:nv arg
-do
-	case "$arg" in
-	     a|b|f|i|n|o|r|v)
-		eval "opt_${arg}='${OPTARG:=1}'"
-		;;
-	esac
-done
+case "$AshsFile" in 
+     *tse.nii.gz)
+	OutputFilename="${BaseFilename}_${Atlas}_highresmri.nii.gz"
+	OutputFilePath="${OutputDir}/${OutputFilename}"
+	sys cp "$AshsFile" "$OutputFilePath"
 
-shift $(("$OPTIND" - 1))
+	OutputJson="{
+		\"OutputFilename\": \"$OutputFilename\"
+              , \"Modality\": \"MR\"
+	      , \"Tags\": [ \"HighResMri\" ]
+	}"
+	;;
 
-AshsPrefix=$(basename "$opt_f")
+     *mprage.nii.gz)
+	OutputFilename="${BaseFilename}_${Atlas}_mprage.nii.gz"
+	OutputFilePath="${OutputDir}/${OutputFilename}"
+	sys cp "$AshsFile" "$OutputFilePath"
 
-OutputDir="$opt_o"
-IdString="$opt_i"
-Atlas="$opt_a"
+	OutputJson="{
+		\"OutputFilename\": \"$OutputFilename\"
+	}"
+	;;
 
-FromFilename=$(find "$opt_f" -type f | grep -e "$opt_r")
-Basename=$(basename "$FromFilename")
-NewBaseName=$(echo "$Basename" | sed "s/${AshsPrefix}_//")
-OutputFile=$(echo "${OutputDir}/${IdString}_${Atlas}_${NewBaseName}")
+    *final/*_lfseg*.nii.gz)
+	if (echo "$AshsFile" | grep -q -i 'right') 
+	then
+		Handedness=Right
+	elif (echo "$AshsFile" | grep -q -i 'left') 
+	then
+		Handedness=Left
+	fi
 
-sys cp "$FromFilename" "$OutputFile"
-echo "$OutputFile"
+	FileSuffix=$(echo "$AshsFile" | sed -E 's/^.*((left|right).*$)/\1/' | sed -E 's/^(left|right)_(.*)(.nii.gz)/\2_\1\3/')
+	OutputFilename="${BaseFilename}_${Atlas}_${FileSuffix}"
+	OutputFilePath="${OutputDir}/${OutputFilename}"
+
+	sys cp "$AshsFile" "$OutputFilePath"
+
+        CustomJson="{
+	      	      	      	      \"GearName\": \"$GearName\"
+		    		    , \"GearVersion\": \"$GearVersion\"
+		    		    , \"GearId\": \"$GearId\"
+		    		    , \"AnalysisId\": \"$AnalysisId\"
+		    		    , \"Atlas\": \"$Atlas\"
+		    		    , \"T1Input\": {
+	                 	           \"FileName\": \"$T1Filename\"
+	       		 		 , \"FileId\": \"$T1FileId\"
+	       		 		 , \"FlywheelPath\": \"$T1FlywheelPath\"
+		                      }
+		    		    , \"T2Input\": {
+		           	           \"FileName\": \"$T2Filename\"
+			 		 , \"FileId\": \"$T2FileId\"
+	       		 		 , \"FlywheelPath\": \"$T2FlywheelPath\"
+				      }
+	}"
+
+	CustomJsonString=$(echo "$CustomJson" | jq --compact-output . | sed 's/"/\\"/g')
+	OutputJson="{
+		\"OutputFilename\": \"$OutputFilename\",
+		\"Metadata\": {
+			        \"modality\": \"SEG\"
+			      , \"tags\": [ \"${Handedness}\", \"{$Atlas}\" ]
+			      , \"classification\": {
+			      	     \"Custom\": \"${CustomJsonString}\"
+		                }
+		 }
+	}"
+	;;
+
+     *final/*bootstrap*.txt)
+	FileSuffix=$(echo "$AshsFile" | sed -E 's/^.*(left|right).*$/\1/' | sed -E 's/^(left|right)_(.*)_(volumes.*)$/\2_\1_\3/')
+	OutputFilename="${BaseFilename}_${Atlas}_${FileSuffix}"
+	OutputFilePath="${OutputDir}/${OutputFilename}"
+
+	sys cp "$AshsFile" "$OutputFilePath"
+	OutputJson="{
+		\"OutputFilename\": \"$OutputFilename\"
+	}"
+	;;
+
+     *affine_t1_to_template/greedy_t1_to_template.mat)
+	OutputFilename="${BaseFilename}_${Atlas}_greedy.mat"
+	OutputFilePath="${OutputDir}/${OutputFilename}"
+
+	sys cp "$AshsFile" "$OutputFilePath"
+	OutputJson="{
+		\"OutputFilename\": \"$OutputFilename\"
+	}"
+	;;
+
+     *flirt*/flirt*.mat)
+	FileSuffix=$(echo "$AshsFile" | sed -E 's,^.*/,,; s/_t2_to_t1//')
+	OutputFilename="${BaseFilename}_${Atlas}_${FileSuffix}"
+	OutputFilePath="${OutputDir}/${OutputFilename}"
+
+	sys cp "$AshsFile" "$OutputFilePath"
+	OutputJson="{
+		\"OutputFilename\": \"$OutputFilename\"
+	}"
+	;;
+
+esac
+
+echo "$OutputJson"
