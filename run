@@ -180,7 +180,7 @@ then
 	T1Input=$(jq -r '.inputs.T1w.location.path' "$ConfigJsonFile" | grep -v null)
         T1FileId=$(jq -r '.inputs.T1w.object.file_id' "$ConfigJsonFile" | grep -v null)
         T2Input=$(jq -r '.inputs.T2w.location.path' "$ConfigJsonFile" | grep -v null)
-	Atlases=( $(jq -r '.config.ASHS_Atlases' "$ConfigJsonFile" | grep -v null | grep -v None) )
+	Atlases=( $(jq -r '.config.ASHS_Atlases' "$ConfigJsonFile" | grep -v null | grep -v None | sed 's/,/ /g') )
 fi
 
 [ -n "$opt_1" ] && T1Input="$opt_1"
