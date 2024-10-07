@@ -114,6 +114,22 @@
     "QaFileRegEx": [ 
 	"qa/qa_seg_bootstrap_corr_nogray_(left|right)_qa.png" 
     ],
+    "OutputDir": [
+	{
+	    "FileRegEx": "tse.nii.gz$",
+	    "MapTo": "higresmri.nii.gz",
+	    "Tags": "HighResMri",
+	    "Modality": "MR",
+	    "ExpectedCount": 1	    
+	},
+	{
+	    "FileRegEx": "final/.*(left|right)_lfseg.*.nii.gz$",
+	    "Modality": "SEG",
+	    "Classification": "$SegmentationJson",
+	    "Tags": [ "$Handedness", "$Atlas" ],
+	    "ExpectedCount": 6
+	}
+    ],
     "SubAtlas": "ASHS-ICV",
     "Url": "https://upenn.box.com/shared/static/uijwemiz4rvp5kbtqoat8c8g4c8kgw1h.tgz"
 }
@@ -126,6 +142,22 @@
     "md5Url": "https://upenn.box.com/shared/static/z0nh75zpit2ll2c2by1zwvyiqrubjbvk.md5sum",
     "QaFileRegEx": [ 
 	"qa/qa_seg_multiatlas_corr_nogray_left_qa.png" 
+    ],
+    "OutputDir": [
+	{
+	    "FileRegEx": "tse.nii.gz$",
+	    "MapTo": "higresmri.nii.gz",
+	    "Tags": "HighResMri",
+	    "Modality": "MR",
+	    "ExpectedCount": 1	    
+	},
+	{
+	    "FileRegEx": "final/.*_left_lfseg_corr_nogray.nii.gz",
+	    "Modality": "SEG",
+	    "Classification": "$SegmentationJson",
+	    "Tags": [ "$Handedness", "$Atlas" ],
+	    "ExpectedCount": 6
+	}
     ],
     "Url": "https://upenn.box.com/shared/static/1yy653yuy2zcd2rots1eaftg7theyyoq.tgz"
 }

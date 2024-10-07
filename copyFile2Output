@@ -1,12 +1,12 @@
 #!/bin/bash
 
 CmdName=$(basename "$0")
-Syntax="${CmdName} [-n][-v] [-c ConfigJsonFile][-o OutputDir]{-a AtlasName} {file}"
+Syntax="${CmdName} [-n][-v] [-c ConfigJsonFile][-i IdString][-o OutputDir][-t tags]{-a AtlasName} {file}"
 
-while getopts a:c:no:v arg
+while getopts a:c:i:no:t:v arg
 do
     case "$arg" in
-	a|c|n|o|v)
+	a|c|i|n|o|t|v)
 	    eval "opt_${arg}='${OPTARG:=1}'"
 	    ;;
     esac
@@ -15,7 +15,7 @@ shift $(( "$OPTIND" - 1 ))
 
 if [ -n "$opt_a" ]
 then
-    Atlas=ASHS-PMC-T2
+    Atlas="$opt_a"
 else
     echo "${CmdName} : missing -a AtlasName" 1>&2
     exit 1
@@ -35,6 +35,8 @@ else
     OutputDir=/flywheel/v0/output
 fi
 
+[ -n "$opt_t" ] && ArgTags=$(echo $opt_t | sed 's/,/","/g; s/^/,"/; s/$/"/')
+
 AshsFile="$1"
 
 read GearName GearVersion GearId < <(jq -r '.job.gear_info | [ .name, .version, .id ] | join(" ")' "$ConfigJsonFile")
@@ -48,7 +50,12 @@ T2FileId=$(jq -r '.inputs.T2w.object.file_id' "$ConfigJsonFile")
 AnalysisId=$(jq -r '.destination.id' "$ConfigJsonFile")
 
 # Also known as the Id in other parts of the uploading process
-BaseFilename=$(basename "$T1Filename" .nii.gz)
+if [ -n "$opt_i" ]
+then
+    BaseFilename="$opt_i"
+else
+    BaseFilename=$(basename "$T1Filename" .nii.gz)
+fi
 
 function sys {
     [ -n "${opt_n}${opt_v}" ] && echo "$@" 1>&2
@@ -64,7 +71,7 @@ case "$AshsFile" in
 	OutputJson="{
 		\"OutputFilename\": \"$OutputFilename\"
               , \"Modality\": \"MR\"
-	      , \"Tags\": [ \"HighResMri\" ]
+	      , \"Tags\": [ \"HighResMri\" ${ArgTags} ]
 	}"
 	;;
 
@@ -87,8 +94,13 @@ case "$AshsFile" in
 		Handedness=Left
 	fi
 
-	FileSuffix=$(echo "$AshsFile" | sed -E 's/^.*((left|right).*$)/\1/' | sed -E 's/^(left|right)_(.*)(.nii.gz)/\2_\1\3/')
-	OutputFilename="${BaseFilename}_${Atlas}_${FileSuffix}"
+	if [ "$Atlas" == "ASHS-ICV" ]
+	then
+		OutputFilename="${BaseFilename}_${Atlas}_icv.nii.gz"
+	else
+		FileSuffix=$(echo "$AshsFile" | sed -E 's/^.*(left|right)_(.*)(.nii.gz)/\2_\1\3/')
+		OutputFilename="${BaseFilename}_${Atlas}_${FileSuffix}"
+	fi
 	OutputFilePath="${OutputDir}/${OutputFilename}"
 
 	sys cp "$AshsFile" "$OutputFilePath"
@@ -116,16 +128,16 @@ case "$AshsFile" in
 		\"OutputFilename\": \"$OutputFilename\",
 		\"Metadata\": {
 			        \"modality\": \"SEG\"
-			      , \"tags\": [ \"${Handedness}\", \"{$Atlas}\" ]
+			      , \"tags\": [ \"${Handedness}\", \"${Atlas}\" ${ArgTags} ]
 			      , \"classification\": {
-			      	     \"Custom\": \"${CustomJsonString}\"
+			      	     \"Custom\": [ \"${CustomJsonString}\" ]
 		                }
 		 }
 	}"
 	;;
 
      *final/*bootstrap*.txt)
-	FileSuffix=$(echo "$AshsFile" | sed -E 's/^.*(left|right).*$/\1/' | sed -E 's/^(left|right)_(.*)_(volumes.*)$/\2_\1_\3/')
+	FileSuffix=$(echo "$AshsFile" | sed -E 's/^.*(left|right)_(.*)_(volumes.*)$/\2_\1_\3/')
 	OutputFilename="${BaseFilename}_${Atlas}_${FileSuffix}"
 	OutputFilePath="${OutputDir}/${OutputFilename}"
 

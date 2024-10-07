@@ -36,7 +36,7 @@ RUN (cd /tmp; unzip fw-linux.zip; cp linux_amd64/fw /usr/local/bin/)
 # Set the working directory for the ASHS app
 WORKDIR ${FLYWHEEL}
 
-RUN pip3 install flywheel-sdk globre pytz pyjq tzlocal
+RUN pip3 install flywheel-sdk flywheel-gear-toolkit globre pytz pyjq tzlocal
 
 # Copy the current scriptlet
 COPY docker-ashs-base /app/

@@ -9,7 +9,7 @@ import pyjq
 import subprocess
 import sys
 
-#from flywheel_gear_toolkit import GearToolkitContext
+from flywheel_gear_toolkit import GearToolkitContext  # GearToolkitContext object allows metadata method
 
 CmdName = os.path.basename(sys.argv[0])
 
@@ -20,6 +20,7 @@ ap.add_argument('-c', '--config-file', default=None, action='store', help='Confi
 ap.add_argument('-i', '--id-string', default=None, action='store', help='IdString: 7_anat_T1w-trimmed')
 ap.add_argument('-n', '--no-op', default=False,  action='store_true', help='no-op')
 ap.add_argument('-o', '--output-dir', default=None,  action='store', help='Directory to copy the Ashs output file to')
+ap.add_argument('-t', '--tags', default=None,  action='store', help='comma separated list of tags to add to the files')
 ap.add_argument('-v', '--verbose', default=False,  action='store_true', help='verbose')
 
 ap.add_argument('ashsoutput', nargs='+', type=str, default=None, help='Files copy to output and add to .metadata.json')
@@ -41,17 +42,25 @@ else:
 
 IdString=args.id_string
 Atlas=args.atlas
+
 if (args.output_dir):
     OutputDir=args.output_dir
 else:
     OutputDir="/flywheel/v0/output"
 
-with flywheel.GearContext(cfg_path=ConfigJsonFile) as context:    
+if (args.tags):
+    TagArgs="-t {}".format(args.tags)
+else:
+    TagArgs=""
+
+with GearToolkitContext(config_path=ConfigJsonFile) as context:    
     for File in args.ashsoutput:
-        SubProcessCmd = "./copyFile2Output -a {} -c {} -o {} {}".format(
+        SubProcessCmd = "./copyFile2Output -a {} -c {} -i {} -o {} {} {}".format(
               Atlas
             , ConfigJsonFile
+            , IdString
             , OutputDir
+            , TagArgs
             , File
         )            
         if (args.verbose):

@@ -233,8 +233,8 @@ AnalysisId=$(jq -r '.destination.id' "$ConfigJsonFile" )
 sys fwUpdate --update-fields "label=ashs - '${Atlases[*]}' on: $(date)" "$AnalysisId"
 
 
-IdString=$(basename "$T1NiftiFile" | sed -r 's/.gz$//; s/.zip$//; s/(.nii|.nifti|.dicom|.dcm)$//')
-
+#IdString=$(basename "$T1NiftiFile" | sed -r 's/.gz$//; s/.zip$//; s/(.nii|.nifti|.dicom|.dcm)$//')
+IdString=$(basename "$T2NiftiFile" | sed -r 's/.gz$//; s/.zip$//; s/(.nii|.nifti|.dicom|.dcm)$//')
 
 for Atlas in "${Atlases[@]}"
 do
