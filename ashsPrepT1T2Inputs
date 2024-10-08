@@ -112,9 +112,13 @@ T1NiftiFile=$(niftiIfNeeded "$T1InputFile")
 sys c3d "$T1NiftiFile" -info 1>&2
 
 IdString=$(basename "$T1NiftiFile" | sed -r 's/.gz$//; s/.zip$//; s/(.nii|.nifti|.dicom|.dcm)$//')
+AcquisitionId=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
 
-if jq -r '.inputs.T1w.object.tags | any("Trimmed")' "$ConfigJsonFile" | grep -q false
+if jq -r 'if ((.inputs.T1w.location.name == "'"$(basename $T1NiftiFile)"'") and (.inputs.T1w.object.tags | any("Trimmed"))) then true else false end' "$ConfigJsonFile" | grep -q true
 then
+    [ -n "$opt_v" ] && echo "${CmdName} : '$T1NiftiFile' is tagged as 'Trimmed'" 1>&2
+    T1NiftiFileTrimmed=$T1NiftiFile
+else
     width=$(sys c3d "$T1NiftiFile" -info-full | grep "Image Dimensions" | awk '{print $4}' | sed 's/[[,]//g')
     height=$(sys c3d "$T1NiftiFile" -info-full | grep "Image Dimensions" | awk '{print $5}' | sed 's/[[,]//g')
     sx=$(sys c3d "$T1NiftiFile" -info-full | grep "Voxel Spacing" | awk '{print $4}' | sed 's/[][,]//g')
@@ -135,6 +139,8 @@ then
                    	[ -d "$InterDir" ] || mkdir -p "$InterDir" 
     
                    	sys "$TrimScript" -m "$MaskDir" -w "$InterDir" "$T1NiftiFile" "$T1NiftiFileTrimmed" 1>&2 || exit "$?"
+
+			sys fwuploadfile -p "$AcquisitionId" -t "Trimmed" "$T1NiftiFileTrimmed"
            	else
                    	echo "Wrong scan input: the aspect ratio of the image is < 0.33 or > 3." 1>&2
                    	exit 4
@@ -143,9 +149,6 @@ then
            	echo "Wrong scan input: the width or/and the height of image is inferior to 40." 1>&2
            	exit 5
     fi
-else
-	[ -n "$opt_v" ] && echo "${CmdName} : '$T1NiftiFile' is tagged as 'Trimmed'" 1>&2
-	T1NiftiFileTrimmed=$T1NiftiFile
 fi
 
 sys c3d "$T1NiftiFileTrimmed" -info 1>&2

@@ -129,9 +129,9 @@ function uploadQaFile {
 		        "${OutputDir}/${IdString}_${Atlas}_lfseg_${what}_left.nii.gz" -shift $SHIFT_LEFT -replace $SHIFT_LEFT 0	\
 			"${OutputDir}/${IdString}_${Atlas}_lfseg_${what}_right.nii.gz" -shift $SHIFT_RIGHT -replace $SHIFT_RIGHT 0	\
 			  -add -type uchar 											\
-			  -o "${OutputDir}/${IdString}_${Atlas}_bfseg_${what}.nii.gz"
+			  -o "${OutputDir}/${IdString}_${Atlas}_blseg_${what}.nii.gz"
 
-		    sys c3d "${OutputDir}/${IdString}_${Atlas}_bfseg_${what}.nii.gz" -info
+		    sys c3d "${OutputDir}/${IdString}_${Atlas}_blseg_${what}.nii.gz" -info
 	    done
 	fi
 
@@ -171,9 +171,9 @@ function uploadQaFile {
 		fi
 
 		ITKSnapCmd+=(
-		   -las "${OutputDir}/${IdString}_${Atlas}_bfseg_corr_usegray.nii.gz" -psn "JLF/CL result" \
-		   -las "${OutputDir}/${IdString}_${Atlas}_bfseg_corr_nogray.nii.gz" -psn "JLF/CL-lite result" \
-		   -las "${OutputDir}/${IdString}_${Atlas}_bfseg_heur.nii.gz" -psn "JLF result" \
+		   -las "${OutputDir}/${IdString}_${Atlas}_blseg_corr_usegray.nii.gz" -psn "JLF/CL result" \
+		   -las "${OutputDir}/${IdString}_${Atlas}_blseg_corr_nogray.nii.gz" -psn "JLF/CL-lite result" \
+		   -las "${OutputDir}/${IdString}_${Atlas}_blseg_heur.nii.gz" -psn "JLF result" \
 		   -labels-clear \
 		   -labels-add "$SnaplabelsInputTxtFile" $SHIFT_LEFT "Left %s" \
 		   -labels-add "$SnaplabelsInputTxtFile" $SHIFT_RIGHT "Right %s" \
@@ -195,9 +195,9 @@ function uploadQaFile {
 		# if there was ICV output, add HarP output to the ICV workspace file 
 		sys itksnap-wt -i "$ItkSnapIcvFile" \
 		   -layers-set-main "${OutputDir}/${IdString}_ASHS-HarP_highresmri.nii.gz" \
-		   -las "${OutputDir}/${IdString}_ASHS-HarP_bfseg_corr_usegray.nii.gz" -psn "JLF/CL result" \
-		   -las "${OutputDir}/${IdString}_ASHS-HarP_bfseg_corr_nogray.nii.gz" -psn "JLF/CL-lite result" \
-		   -las "${OutputDir}/${IdString}_ASHS-HarP_bfseg_heur.nii.gz" -psn "JLF result" \
+		   -las "${OutputDir}/${IdString}_ASHS-HarP_blseg_corr_usegray.nii.gz" -psn "JLF/CL result" \
+		   -las "${OutputDir}/${IdString}_ASHS-HarP_blseg_corr_nogray.nii.gz" -psn "JLF/CL-lite result" \
+		   -las "${OutputDir}/${IdString}_ASHS-HarP_blseg_heur.nii.gz" -psn "JLF result" \
 		   -labels-add "$SnaplabelsInputTxtFile" $SHIFT_LEFT "Left %s" \
 		   -labels-add "$SnaplabelsInputTxtFile" $SHIFT_RIGHT "Right %s" \
 		   -o "$ItkSnapHarPIcvFile"
