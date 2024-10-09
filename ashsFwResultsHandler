@@ -112,7 +112,13 @@ function uploadQaFile {
 	T1OutputNiftiFile="${OutputDir}/"$(basename "$T1NiftiFileTrimmed")
 	T2OutputNiftiFile="${OutputDir}/"$(basename "$T2NiftiFile")
 
-	AcquisitionId=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
+
+	AcquisitionId=$(jq -r '.inputs.T2w.hierarchy.id' "$ConfigJsonFile")
+	if [ "$AcquisitionId" == "null"]
+	then
+	    AcquisitionId=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
+	fi
+
 	JobId=$(jq -r '.job.id' "$ConfigJsonFile")
 	JobUrl="https://upenn.flywheel.io/#/jobs/${JobId}"
 	DateTime=$(date --iso-8601=seconds -u)
@@ -153,11 +159,9 @@ function uploadQaFile {
 
 		ICV=$(c3d "${OutputDir}/${IdString}_${Atlas}_icv.nii.gz" -dup -lstat | tail -n 1 | awk '{print $7}')
 
-		sys fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "+={\"ICV\": ${ICV} }" "$AcquisitionId"
+		sys fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j 
 
 		ITKSnapCmd+=(
-    		   -las "${OutputDir}/${IdString}_${Atlas}_icv.nii.gz" -psn "ICV" 
-		   -labels-clear 
     		   -labels-add "$SnaplabelsInputTxtFile" "$SHIFT_ICV" "%s" 
 		)
 
