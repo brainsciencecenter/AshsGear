@@ -104,6 +104,7 @@ function uploadQaFile {
 	done < <(find "$WorkDir" -type f | grep -E "$OutputFileRegEx")
 	
 	sys genMetadataFile -v -a "$Atlas" "${GenMetadataFileArgs[@]}" -c "$ConfigJsonFile" -i "$IdString" -o "$OutputDir" "${AshsOutputFiles[@]}"
+	cp output/.metadata.json output/.metadata.json."$Atlas"
 
 	# Build the ITKSnap Workspace files
 
@@ -273,6 +274,15 @@ function uploadQaFile {
 	then
 	    cat "${OutputDir}/.metadata.json"
 	fi
+
+	NumberMetadataFiles=$(ls "$OutputDir"/.metadata.json.* | wc -l )
+	if [ "$NumberMetadataFiles" -gt 1 ]
+	then
+		# combine all the metadata files back in to the main metadata file
+		sys jq '.analysis.files[]' "$OutputDir"/.metadata.json.* | sys jq -s '{"analysis": { "files": . } }' > "$OutputDir"/.metadata.json
+	fi
+
+	sys rm -f "$OutputDir"/.metadata.json.*
 
 	for i in "${OutputDir}"/*"${Atlas}"*.nii.gz
 	do
