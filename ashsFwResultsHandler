@@ -114,7 +114,7 @@ function uploadQaFile {
 
 
 	AcquisitionId=$(jq -r '.inputs.T2w.hierarchy.id' "$ConfigJsonFile")
-	if [ "$AcquisitionId" == "null"]
+	if [ "$AcquisitionId" == "null" ]
 	then
 	    AcquisitionId=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
 	fi
