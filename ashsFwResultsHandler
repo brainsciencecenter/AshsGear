@@ -270,10 +270,6 @@ function uploadQaFile {
 	fwget -1 "$AcquisitionId" | jq -r '.info.PICSL_sMRI_biomarkers' > "${OutputDir}/PICSL_sMRI_biomarkers.json"
 	
 	sys ls -la "$OutputDir"
-	if [ -e "${OutputDir}/.metadata.json" ]
-	then
-	    cat "${OutputDir}/.metadata.json"
-	fi
 
 	NumberMetadataFiles=$(ls "$OutputDir"/.metadata.json.* | wc -l )
 	if [ "$NumberMetadataFiles" -gt 1 ]
@@ -281,6 +277,8 @@ function uploadQaFile {
 		# combine all the metadata files back in to the main metadata file
 		sys jq '.analysis.files[]' "$OutputDir"/.metadata.json.* | sys jq -s '{"analysis": { "files": . } }' > "$OutputDir"/.metadata.json
 	fi
+
+	[ -e "${OutputDir}/.metadata.json" ] && cat "${OutputDir}/.metadata.json"
 
 	for i in "${OutputDir}"/*"${Atlas}"*.nii.gz
 	do
