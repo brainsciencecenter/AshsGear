@@ -275,3 +275,4 @@ do
 
 done
 
+sys rm -rf "$OutputDir"/.metadata.json.*

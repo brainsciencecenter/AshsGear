@@ -282,8 +282,6 @@ function uploadQaFile {
 		sys jq '.analysis.files[]' "$OutputDir"/.metadata.json.* | sys jq -s '{"analysis": { "files": . } }' > "$OutputDir"/.metadata.json
 	fi
 
-	sys rm -f "$OutputDir"/.metadata.json.*
-
 	for i in "${OutputDir}"/*"${Atlas}"*.nii.gz
 	do
 		c3d "$i" -info
