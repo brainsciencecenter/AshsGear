@@ -35,6 +35,9 @@ else
     OutputDir=/flywheel/v0/output
 fi
 
+#
+# add a leading ',' so if there aren't any tags, [ "footag" ${ArgTags} ] is valid json
+# 
 [ -n "$opt_t" ] && ArgTags=$(echo $opt_t | sed 's/,/","/g; s/^/,"/; s/$/"/')
 
 AshsFile="$1"
@@ -94,6 +97,20 @@ case "$AshsFile" in
 		Handedness=Left
 	fi
 
+	case "$AshsFile" in
+		*lfseg_heur*)
+			SegmentationTag=Heur
+			;;
+
+		*lfseg_corr_usegray*)
+			SegmentationTag=UseGray
+			;;
+
+		*lfseg_corr_nogray*)
+			SegmentationTag=NoGray
+			;;
+	esac
+
 	if [ "$Atlas" == "ASHS-ICV" ]
 	then
 		OutputFilename="${BaseFilename}_${Atlas}_icv.nii.gz"
@@ -128,7 +145,7 @@ case "$AshsFile" in
 		\"OutputFilename\": \"$OutputFilename\",
 		\"Metadata\": {
 			        \"modality\": \"SEG\"
-			      , \"tags\": [ \"${Handedness}\", \"${Atlas}\" ${ArgTags} ]
+			      , \"tags\": [ \"${Handedness}\", \"${SegmentationTag}\",  \"${Atlas}\" ${ArgTags} ]
 			      , \"classification\": {
 			      	     \"Custom\": [ \"${CustomJsonString}\" ]
 		                }

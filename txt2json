@@ -1,16 +1,25 @@
 #!/bin/bash
 
 CmdName=$(basename "$0")
-Syntax="${CmdName} [-d date]{-j jobid}[-n][-v]{-a Atlas}{-w WorkingDir}"
+Syntax="${CmdName} [-d date]{-A Analysisd}{-j jobid}[-n][-v]{-a Atlas}{-w WorkingDir}"
 
-while getopts "a:d:j:nvw:" arg
+while getopts "A:a:d:j:nvw:" arg
 do
 	case "$arg" in
-		a|d|j|n|v|w)
+		A|a|d|j|n|v|w)
 			eval "opt_${arg}='${OPTARG:=1}'"
 			;;
 	esac
 done
+
+if [ -z "$opt_A" ]
+then
+	echo "${CmdName} : Missing argument -A AcquisitionId" 1>&2
+	echo "$Syntax" 1>&2
+	exit 1
+else
+	AnalysisId="$opt_A"
+fi
 
 if [ -z "$opt_a" ]
 then
@@ -62,4 +71,4 @@ function getTxtMetrics {
 	done
 }
 
-getTxtMetrics "$FinalDir" | jq -r -s --argjson JobId "\"${JobId}\"" --argjson DateTime "\"${DateTime}\"" '{ "JobInfo" : { "JobId": $JobId, "JobDateTime": $DateTime }, "Metrics": (add) }'
+getTxtMetrics "$FinalDir" | jq -r -s --argjson AnalysisId "\"${AnalysisId}\"" --argjson JobId "\"${JobId}\"" --argjson DateTime "\"${DateTime}\"" '{ "JobInfo" : { "AnalysisId": $AnalysisId, "JobId": $JobId, "JobDateTime": $DateTime }, "Metrics": (add) }'
