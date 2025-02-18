@@ -271,7 +271,9 @@ do
 	SnaplabelsOutputTxtFile="${OutputDir}/${IdString}_${Atlas}_snaplabels.txt"
 	ItkSnapFile=${OutputDir}/${IdString}_${Atlas}_results.itksnap
 
-	sys bash -x ./ashsFwResultsHandler $opt_v -a "$Atlas" -A "$AtlasDirectory" -c "$ConfigJsonFile" -i "$IdString" -o "$OutputDir" -l "$SHIFT_LEFT" -r "$SHIFT_RIGHT" -I "$SHIFT_ICV" -1 "$T1NiftiFile" -2 "$T2NiftiFile" -t "$T1NiftiFileTrimmed" -w "$TmpDir" -q "$opt_q" || exit "$?"
+	# Don't need to pass the input tags through to the output segmented files, so leave out the -t here
+	#sys bash -x ./ashsFwResultsHandler $opt_v -a "$Atlas" -A "$AtlasDirectory" -c "$ConfigJsonFile" -i "$IdString" -o "$OutputDir" -l "$SHIFT_LEFT" -r "$SHIFT_RIGHT" -I "$SHIFT_ICV" -1 "$T1NiftiFile" -2 "$T2NiftiFile" -t "$T1NiftiFileTrimmed" -w "$TmpDir" -q "$opt_q" || exit "$?"
+	sys bash -x ./ashsFwResultsHandler $opt_v -a "$Atlas" -A "$AtlasDirectory" -c "$ConfigJsonFile" -i "$IdString" -o "$OutputDir" -l "$SHIFT_LEFT" -r "$SHIFT_RIGHT" -I "$SHIFT_ICV" -1 "$T1NiftiFile" -2 "$T2NiftiFile" -w "$TmpDir" -q "$opt_q" || exit "$?"
 
 done
 
