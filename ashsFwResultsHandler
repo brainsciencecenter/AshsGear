@@ -87,11 +87,14 @@ function uploadQaFile {
 	# Copy in all the ashs workspace files to the output directory 
 
 
-	if [ -n "$T1Tags" ] || [ -n "$T2Tags"]
-	then
-	    T1T2Tags=$(echo "${T1Tags} ${T2Tags}" | jq -r -s 'add | sort | unique | @csv' | sed 's/"//g')
-	    GenMetadataFileArgs+=( -t "$T1T2Tags" )
-	fi
+	#
+	# Don't really want to pass the input tags through to the ashs outputs
+	# 
+#	if [ -n "$T1Tags" ] || [ -n "$T2Tags"]
+#	then
+#	    T1T2Tags=$(echo "${T1Tags} ${T2Tags}" | jq -r -s 'add | sort | unique | @csv' | sed 's/"//g')
+#	    GenMetadataFileArgs+=( -t "$T1T2Tags" )
+#	fi
 
 	OutputDirJson=$(echo "$AtlasJson" | jq -r '.OutputDir')
 	FileRegEx=""
@@ -108,7 +111,7 @@ function uploadQaFile {
 	done < <(find "$WorkDir" -type f | grep -E "$OutputFileRegEx")
 	
 	sys genMetadataFile -v -a "$Atlas" "${GenMetadataFileArgs[@]}" -c "$ConfigJsonFile" -i "$IdString" -o "$OutputDir" "${AshsOutputFiles[@]}"
-	cp output/.metadata.json output/.metadata.json."$Atlas"
+	[ -e "output/.metadata.json" ] && cp output/.metadata.json output/.metadata.json."$Atlas"
 
 	# Build the ITKSnap Workspace files
 
@@ -267,6 +270,7 @@ function uploadQaFile {
 
 	sys txt2json -v -w "$WorkDir" -a "$Atlas" -j "$JobId" -A "$AnalysisId" -d "$DateTime"  > "${OutputDir}/${Atlas}.json"
 	sys fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "{ \"$Atlas\": $(< ${OutputDir}/${Atlas}.json) }" "$AcquisitionId"
+	sys updateModifiedTimestamp "$AcquisitionId"
 
 	fwget -1 "$AcquisitionId" | jq -r '.info.PICSL_sMRI_biomarkers' > "${OutputDir}/PICSL_sMRI_biomarkers.json"
 	
@@ -281,8 +285,8 @@ function uploadQaFile {
 
 	[ -e "${OutputDir}/.metadata.json" ] && cat "${OutputDir}/.metadata.json"
 
-	for i in "${OutputDir}"/*"${Atlas}"*.nii.gz
+	for i in $(ls "${OutputDir}" | grep ".*${Atlas}.*.nii.gz")
 	do
-		c3d "$i" -info
+		c3d "${OutputDir}/${i}" -info
 	done
 
