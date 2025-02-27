@@ -108,13 +108,14 @@ then
 fi
 
 T1NiftiFile=$(niftiIfNeeded "$T1InputFile")
+T1NiftiFileBaseName=$(basename "$T1InputFile")
 
 sys c3d "$T1NiftiFile" -info 1>&2
 
 IdString=$(basename "$T1NiftiFile" | sed -r 's/.gz$//; s/.zip$//; s/(.nii|.nifti|.dicom|.dcm)$//')
 AcquisitionId=$(jq -r '.inputs.T1w.hierarchy.id' "$ConfigJsonFile")
 
-if jq -r 'if ((.inputs.T1w.location.name == "'"$(basename $T1NiftiFile)"'") and (.inputs.T1w.object.tags | any("Trimmed"))) then true else false end' "$ConfigJsonFile" | grep -q true
+if jq -r 'if ((.inputs.T1w.location.name == "'"$T1NiftiFileBaseName"'") and (.inputs.T1w.object.tags | any("Trimmed"))) then true else false end' "$ConfigJsonFile" | grep -q true
 then
     [ -n "$opt_v" ] && echo "${CmdName} : '$T1NiftiFile' is tagged as 'Trimmed'" 1>&2
     T1NiftiFileTrimmed=$T1NiftiFile
