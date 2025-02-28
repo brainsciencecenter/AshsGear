@@ -1,4 +1,42 @@
 {
+    "Atlas": "ASHS-PMC-T1ext",
+    "Directory": "/app/atlas/data/ashs_atlas_upennpmc_t1ext_20240617",
+    "Inputs": { 
+	    "T1" : "testdata/124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz"
+    },
+
+    "md5Url": "https://upenn.box.com/shared/static/602oyyvkiyukeqwej6444vklwvyydhkz.md5sum",
+    "Url": "https://upenn.box.com/shared/static/9q9q9e5d58mg9f0aurcjkdx1bt3anvp7.tgz",
+    "QaFileRegEx": [ 
+	"qa/.*qa_seg_bootstrap_heur_(left|right)_qa.png" 
+    ],
+    "OutputDir": [
+	{
+	    "FileRegEx": "tse.nii.gz$",
+	    "MapTo": "higresmri.nii.gz",
+	    "Tags": "HighResMri",
+	    "Modality": "MR",
+	    "ExpectedCount": 1	    
+	},
+	{
+	    "FileRegEx": "mprage.nii.gz$",
+	    "MapTo": "t1.nii.gz",
+	    "ExpectedCount": 1
+	},
+	{
+	    "FileRegEx": "final/.*(left|right)_lfseg.*.nii.gz$",
+	    "Modality": "SEG",
+	    "Classification": "$SegmentationJson",
+	    "Tags": [ "$Handedness", "$Atlas" ],
+	    "ExpectedCount": 6
+	},
+	{
+	    "FileRegEx": "final/.*bootstrap.*txt$",
+	    "ExpectedCount": 8
+	}
+    ],
+}
+{
     "Atlas": "ASHS-PMC-T1",
     "Directory": "/app/atlas/data/ashsT1_atlas_upennpmc_07202018",
     "Inputs": { 
