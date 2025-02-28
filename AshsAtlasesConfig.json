@@ -34,7 +34,7 @@
 	    "FileRegEx": "final/.*bootstrap.*txt$",
 	    "ExpectedCount": 8
 	}
-    ],
+    ]
 }
 {
     "Atlas": "ASHS-PMC-T1",
