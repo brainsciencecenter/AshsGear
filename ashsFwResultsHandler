@@ -242,7 +242,7 @@ function uploadQaFile {
 	    echo "IdString = '$IdString'" 1>&2
 
 	    NewBaseName=$(echo "$BaseName" | sed "s/${AshsPrefix}_//")
-	    OutputFile=$(echo "${OutputDir}/${IdString}_${Atlas}_${NewBaseName}" | sed 's/ICV_qa_seg_multiatlas_corr_nogray_left_qa/ICV_icv_qc/')
+	    OutputFile=$(echo "${OutputDir}/${IdString}_${Atlas}_${NewBaseName}" | sed 's/ICV_qa_seg_multiatlas_corr_nogray_left_qa/ICV_icv_qc/; s/_qa/_qc/g; s/qa_//; s/_qc_/_/')
 
 	    case "$opt_q" in
 	        Analysis|analysis)
