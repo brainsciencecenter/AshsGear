@@ -1,6 +1,6 @@
 {
     "Atlas": "ASHS-PMC-T1ext",
-    "Directory": "/app/atlas/data/ashs_atlas_upennpmc_t1ext_20240617",
+    "Directory": "/app/atlas/data/ashsT1_atlas_upennpmc_07202018",
     "Inputs": { 
 	    "T1" : "testdata/124822x20210126x3TxABC/T1_3D_0.8x0.8x0.8_ND.nii.gz"
     },

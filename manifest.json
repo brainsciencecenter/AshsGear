@@ -16,7 +16,8 @@
     "FLYWHEEL_INPUT": "/flywheel/v0/input",
     "FLYWHEEL_OUTPUT": "/flywheel/v0/output",
     "PYTHONPATH": "/usr/local/lib/python3.9/site-packages:/flywheel/v0/flywheel/lib",
-    "PWD": "/flywheel/v0"
+    "PWD": "/flywheel/v0",
+    "FLYWHEELSITEVERSION": "19.5.1"
   },
   "custom": {
     "gear-builder": {
@@ -64,6 +65,7 @@
         "ASHS-ABC-7T",
         "ASHS-HarP",
         "ASHS-ICV",
+        "ASHS-ICV,ASHS-HarP",
         "ASHS-Magdeburg",
         "ASHS-PMC-T1",
         "ASHS-PMC-T2",
