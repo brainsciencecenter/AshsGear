@@ -117,6 +117,9 @@ function uploadQaFile {
 
 	T1Tag=T1-MRI
 	T2Tag=T2-MRI
+
+	# *** T1OutputNifti isn't used anywhere???
+	# *** What happens if -t isn't provided?
 	T1OutputNiftiFile="${OutputDir}/"$(basename "$T1NiftiFileTrimmed")
 	T2OutputNiftiFile="${OutputDir}/"$(basename "$T2NiftiFile")
 
@@ -231,7 +234,7 @@ function uploadQaFile {
 		regex="^$"
 	fi
 
-    	for i in $(find "${WorkDir}" -type f | grep -E "$regex")
+    	while read i
     	do
     	    BaseName=$(basename "$i" )
 
@@ -266,7 +269,7 @@ function uploadQaFile {
 		    ;;
 
             esac
-	done
+	done < <( find "${WorkDir}" -type f | grep -E "$regex" )
 
 	sys txt2json -v -w "$WorkDir" -a "$Atlas" -j "$JobId" -A "$AnalysisId" -d "$DateTime"  > "${OutputDir}/${Atlas}.json"
 	sys fwUpdateInfo -f -p .PICSL_sMRI_biomarkers -j "{ \"$Atlas\": $(< ${OutputDir}/${Atlas}.json) }" "$AcquisitionId"
@@ -285,8 +288,8 @@ function uploadQaFile {
 
 	[ -e "${OutputDir}/.metadata.json" ] && cat "${OutputDir}/.metadata.json"
 
-	for i in $(ls "${OutputDir}" | grep ".*${Atlas}.*.nii.gz")
+	while read file
 	do
-		c3d "${OutputDir}/${i}" -info
-	done
+		c3d "${OutputDir}/${file}" -info
+	done < <(ls "${OutputDir}" | grep ".*${Atlas}.*.nii.gz")
 

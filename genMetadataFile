@@ -6,6 +6,7 @@ import fwgearutils
 import json
 import os
 import pyjq
+import re
 import subprocess
 import sys
 
@@ -55,30 +56,45 @@ else:
 
 with GearToolkitContext(config_path=ConfigJsonFile) as context:    
     for File in args.ashsoutput:
-        SubProcessCmd = "./copyFile2Output -a {} -c {} -i {} -o {} {} {}".format(
-              Atlas
-            , ConfigJsonFile
-            , IdString
-            , OutputDir
-            , TagArgs
-            , File
-        )            
         if (args.verbose):
-            print(CmdName + ": " + SubProcessCmd, file=sys.stderr)
-            
-        OutputJsonString = subprocess.getoutput(SubProcessCmd)
+            print("{}: File = '{}'".format(CmdName, File), file=sys.stderr, flush=True)
 
-        if (args.verbose):
-            print(OutputJsonString, file=sys.stderr)
-
-        OutputJson = json.loads(OutputJsonString)
-
-        OutputFilename = pyjq.all('.OutputFilename', OutputJson)[0]
-        Metadata = pyjq.all('.Metadata', OutputJson)[0]
-
-        if (Metadata):
+        if (os.path.exists(File)):
+            # Do not use -v here else you get debugging info in the output string
+            SubProcessCmd = "./copyFile2Output -a '{}' -c '{}' -i '{}' -o '{}' {} '{}'".format(
+                  Atlas
+                , ConfigJsonFile
+                , IdString
+                , OutputDir
+                , TagArgs
+                , File
+            )            
             if (args.verbose):
-                print("Filename = '{}', Metadata = '{}'".format(OutputFilename, Metadata), file=sys.stderr)
+                print(CmdName + ": " + SubProcessCmd, file=sys.stderr, flush=True)
+                
+            OutputJsonString = subprocess.getoutput(SubProcessCmd)
+            OutputJsonString = ''.join(OutputJsonString.splitlines())
 
-            if (not args.no_op):
-                context.update_file_metadata(OutputFilename, **Metadata)
+            if (re.search("^\s*$", OutputJsonString)):
+                if (args.verbose):
+                    print("{}: OutputJsonString is empty.  Skipping".format(CmdName), file=sys.stderr, flush=True)
+
+                continue
+
+            if (args.verbose):
+                print(CmdName + ": " + OutputJsonString, file=sys.stderr, flush=True)
+
+            OutputJson = json.loads(OutputJsonString)
+    
+            OutputFilename = pyjq.all('.OutputFilename', OutputJson)[0]
+            Metadata = pyjq.all('.Metadata', OutputJson)[0]
+    
+            if (Metadata):
+                if (args.verbose):
+                    print("Filename = '{}', Metadata = '{}'".format(OutputFilename, Metadata), file=sys.stderr)
+    
+                if (not args.no_op):
+                    context.update_file_metadata(OutputFilename, **Metadata)
+        else:
+            print("{}: '{}' not found. Skipping".format(CmdName,File), file=sys.stderr, flush=True)
+
